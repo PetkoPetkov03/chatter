@@ -11,14 +11,19 @@ const Signin = () => {
 
     const [status, setStatus]: [string, Dispatch<SetStateAction<string>>] = useState("");
 
+    const [formDisable, setFormDisable] : [boolean, Dispatch<SetStateAction<boolean>>] = useState(false);
+
     const signInMutation = trpc.useMutation(["auth.login"], {
         onError(error, variables, context) {
             setStatus(error.message)
+            setFormDisable(false);
         },
     });
 
     const signin = async(event: React.FormEvent) => {
         event.preventDefault();
+
+        setFormDisable(true);
 
         const signInInfo = await signInMutation.mutateAsync({ email: email, password: password});
 
@@ -45,14 +50,14 @@ const Signin = () => {
         <div className='register-wrapper' >
             <h1>Sign In</h1>
 
-            <form className='form-register' onSubmit={(event) => {
+            <form aria-disabled={formDisable} className='form-register' onSubmit={(event) => {
                 signin(event)
             }}>
                 <div className="input-form">
                     <input type="email" name='email' id='email' placeholder='Email' value={email} onChange={(event) => setEmail(event.target.value)} required />
                     <input type="password" name="password" id="password" placeholder='Password' value={password} onChange={(event) => setPassword(event.target.value)} required />
                 </div>
-                <button type="submit">Register</button>
+                <input disabled={formDisable} className="form-btn" type="submit" value="Sign In" />
 
                 <div className="form-status">
                     {status}

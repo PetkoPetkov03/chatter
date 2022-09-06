@@ -1,6 +1,5 @@
 import { withIronSessionApiRoute } from "iron-session/next";
 import { NextApiResponse, NextApiRequest } from "next";
-import { trpc } from "../../../utils/trpc";
 
 export default withIronSessionApiRoute(
     async function loginRoute(req: NextApiRequest, res: NextApiResponse) {
@@ -31,7 +30,7 @@ export default withIronSessionApiRoute(
         };
         
 
-        console.log(await req.session.save());
+        await req.session.save()
         res.status(200).send({ok: true});
 
     },

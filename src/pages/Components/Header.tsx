@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import type { User } from '../../types/UserTypes'
 
 const Header = () => {
   return (
@@ -10,7 +11,7 @@ const Header = () => {
         </div></Link>
         <div className="links-wrapper">
            <div className="links">
-            <div className='link'></div>
+            <Link href="/signin" ><div className='link'></div></Link>
             <Link href="/register"><div className="link"></div></Link>
           </div>
         </div>

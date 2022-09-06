@@ -10,9 +10,10 @@ import "../styles/base.css";
 import "../styles/header.css";
 import "../styles/form.css";
 import Layout from "./Components/Layout";
+import Wrapper from "./_wrapper";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
-  return <Layout><Component {...pageProps} /></Layout>
+  return <Wrapper Component={Component} pageProps={pageProps} />
 };
 
 const getBaseUrl = () => {

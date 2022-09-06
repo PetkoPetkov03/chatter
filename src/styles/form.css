@@ -21,7 +21,7 @@
     justify-content: space-around;
 }
 
-.form-register>button {
+.form-register>.form-btn {
     width: 75%;
     height: 44px;
     color: white;
