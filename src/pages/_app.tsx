@@ -9,11 +9,37 @@ import "../styles/globals.css";
 import "../styles/base.css";
 import "../styles/header.css";
 import "../styles/form.css";
+import { RecoilRoot, useRecoilState } from "recoil";
 import Layout from "./Components/Layout";
-import Wrapper from "./_wrapper";
+import { userState } from "../libs/atoms";
+import React, { useEffect } from "react";
+import { useRouter } from "next/router";
+
+const Wrapper = ({children}: React.PropsWithChildren) => {
+  const [_user, setUser] = useRecoilState(userState);
+  
+  const router = useRouter()
+
+  const fetchUser = async () => {
+    const request = await fetch("/api/auth/user", {
+      method: "POST"
+    });
+
+    const response = await request.json();
+
+    setUser(() =>response.user);
+    router.push("/");
+  }
+
+  useEffect(() => {
+    fetchUser();
+    
+  }, []);
+  return <Layout>{children}</Layout>
+}
 
 const MyApp: AppType = ({ Component, pageProps }) => {
-  return <Wrapper Component={Component} pageProps={pageProps} />
+  return <RecoilRoot><Wrapper><Component {...pageProps} /></Wrapper></RecoilRoot>
 };
 
 const getBaseUrl = () => {

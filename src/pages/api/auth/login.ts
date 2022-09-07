@@ -19,9 +19,7 @@ export default withIronSessionApiRoute(
         const bodyUnparsed = await req.body;
 
         const body: UserBody = await JSON.parse(bodyUnparsed);
-
-
-        // @ts-expect-error
+        
         req.session.user = {
             email: body.email,
             username: body.username,

@@ -3,7 +3,10 @@ import { NextApiResponse, NextApiRequest } from "next";
 
 export default withIronSessionApiRoute(
   function userRoute(req: NextApiRequest, res: NextApiResponse) {
-    // @ts-expect-error
+    if(req.method !== "POST"){ 
+      
+    }
+    
     res.json({ user: req.session.user });
   },
   {

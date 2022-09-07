@@ -1,8 +1,13 @@
-import React from 'react'
-import Link from 'next/link'
-import type { User } from '../../types/UserTypes'
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import Link from 'next/link';
+import { userState } from '../../libs/atoms';
+import { useRecoilValue } from 'recoil';
+
 
 const Header = () => {
+
+  const user = useRecoilValue(userState);
+  
   return (
     <div className="header_wrapper">
       <div className="header_component">
@@ -10,9 +15,17 @@ const Header = () => {
           <h1></h1>
         </div></Link>
         <div className="links-wrapper">
-           <div className="links">
-            <Link href="/signin" ><div className='link'></div></Link>
-            <Link href="/register"><div className="link"></div></Link>
+          <div className="links">
+
+            {user ?
+              <>
+                <Link href="/signout" ><div className='link'></div></Link>
+              </>
+              :
+              <>
+                <Link href="/signin" ><div className='link'></div></Link>
+                <Link href="/register"><div className="link"></div></Link>
+              </>}
           </div>
         </div>
       </div>

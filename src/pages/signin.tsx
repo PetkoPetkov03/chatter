@@ -1,8 +1,23 @@
 import React, { useState, Dispatch, SetStateAction } from 'react'
 import { trpc } from '../utils/trpc';
 import { useRouter } from 'next/router';
+import { useRecoilState } from 'recoil';
+import { userState } from '../libs/atoms';
 
 const Signin = () => {
+    const [user, setUser] = useRecoilState(userState);
+
+
+    const fetchUser = async () => {
+        const request = await fetch("/api/auth/user", {
+            method: "POST"
+        });
+
+        const response = await request.json();
+
+        setUser(() => response.user);
+
+    }
 
     const router = useRouter();
 
@@ -11,7 +26,7 @@ const Signin = () => {
 
     const [status, setStatus]: [string, Dispatch<SetStateAction<string>>] = useState("");
 
-    const [formDisable, setFormDisable] : [boolean, Dispatch<SetStateAction<boolean>>] = useState(false);
+    const [formDisable, setFormDisable]: [boolean, Dispatch<SetStateAction<boolean>>] = useState(false);
 
     const signInMutation = trpc.useMutation(["auth.login"], {
         onError(error, variables, context) {
@@ -20,12 +35,12 @@ const Signin = () => {
         },
     });
 
-    const signin = async(event: React.FormEvent) => {
+    const signin = async (event: React.FormEvent) => {
         event.preventDefault();
 
         setFormDisable(true);
 
-        const signInInfo = await signInMutation.mutateAsync({ email: email, password: password});
+        const signInInfo = await signInMutation.mutateAsync({ email: email, password: password });
 
         const body = {
             email: signInInfo.user.email,
@@ -41,7 +56,9 @@ const Signin = () => {
 
         setStatus(signInInfo.message);
 
-        if(request.ok === true){
+        await fetchUser();
+
+        if (request.ok === true) {
             router.push("/");
         }
     }
