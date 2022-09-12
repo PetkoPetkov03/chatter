@@ -28,12 +28,10 @@ const Wrapper = ({children}: React.PropsWithChildren) => {
     const response = await request.json();
 
     setUser(() =>response.user);
-    router.push("/");
   }
 
   useEffect(() => {
     fetchUser();
-    
   }, []);
   return <Layout>{children}</Layout>
 }

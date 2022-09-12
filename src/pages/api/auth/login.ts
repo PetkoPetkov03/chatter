@@ -1,5 +1,6 @@
 import { withIronSessionApiRoute } from "iron-session/next";
 import { NextApiResponse, NextApiRequest } from "next";
+import { sessionOptions } from "../../../libs/session";
 
 export default withIronSessionApiRoute(
     async function loginRoute(req: NextApiRequest, res: NextApiResponse) {
@@ -32,12 +33,5 @@ export default withIronSessionApiRoute(
         res.status(200).send({ok: true});
 
     },
-    {
-        cookieName: process.env.APP_COOKIE_NAME as string,
-        password: process.env.SECRET_COOKIE_PASSWORD as string,
-        // secure: true should be used in production (HTTPS) but can't be used in development (HTTP)
-        cookieOptions: {
-            secure: process.env.NODE_ENV === "production",
-        },
-    },
+    sessionOptions
 );

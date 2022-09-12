@@ -1,20 +1,14 @@
 import { withIronSessionApiRoute } from "iron-session/next";
 import { NextApiResponse, NextApiRequest } from "next";
+import { sessionOptions } from "../../../libs/session";
 
 export default withIronSessionApiRoute(
   function userRoute(req: NextApiRequest, res: NextApiResponse) {
     if(req.method !== "POST"){ 
-      
+      throw new Error("Wrong Request Method!");
     }
     
     res.json({ user: req.session.user });
   },
-  {
-    cookieName: process.env.APP_COOKIE_NAME as string,
-    password: process.env.SECRET_COOKIE_PASSWORD as string,
-    // secure: true should be used in production (HTTPS) but can't be used in development (HTTP)
-    cookieOptions: {
-      secure: process.env.NODE_ENV === "production",
-    },
-  },
+  sessionOptions
 );
