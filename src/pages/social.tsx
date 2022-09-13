@@ -38,17 +38,20 @@ const Social = () => {
     <div>
       Social
       <input type="text" onChange={(e) => setSearhQuery(e.target.value)} />
-      <>
+      <div>
         {searchResults.data?.searchResults.map((query) => {
           return (
-            <div className="queryResult">
+            <div key={query.id} className="queryResult">
               <h1>{query.username}</h1>
-              <button onClick={() => friendRequest(query.id, user?.id!)} >Send Friend Request!</button>
+              {!user ? "" : <div>
+              <button onClick={() => friendRequest(query.id, user.id)} >Send Friend Request!</button>
               {response && query.id === response.id ? response.message : ""}
+                </div>}
+              
             </div>
           );
         })}
-      </>
+      </div>
     </div>
   )
 }
