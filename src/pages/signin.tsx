@@ -3,15 +3,15 @@ import { trpc } from '../utils/trpc';
 import { useRouter } from 'next/router';
 import { useRecoilState } from 'recoil';
 import { userState } from '../libs/atoms';
+import { signinProxie } from '../proxies/signin';
+import { createCookieProxie } from '../proxies/cookie';
 
 const Signin = () => {
     const [user, setUser] = useRecoilState(userState);
 
 
     const fetchUser = async () => {
-        const request = await fetch("/api/auth/user", {
-            method: "POST"
-        });
+        const request = await signinProxie();
 
         const response = await request.json();
 
@@ -49,10 +49,7 @@ const Signin = () => {
             admin: signInInfo.user.admin
         }
 
-        const request = await fetch("/api/auth/login", {
-            method: "POST",
-            body: JSON.stringify(body)
-        });
+        const request = await createCookieProxie(body);
 
         setStatus(signInInfo.message);
 
