@@ -20,6 +20,7 @@ const Header = () => {
             {user ?
               <>
                 <Link href="/signout" ><div className='link'></div></Link>
+                <Link href={`/account/${user.id}`}><div className="link"></div></Link>
               </>
               :
               <>

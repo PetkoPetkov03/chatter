@@ -2,6 +2,7 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { userState } from '../libs/atoms';
 import { useRecoilValue } from 'recoil';
 import { trpc } from '../utils/trpc';
+import Notifications from './Components/Notifications';
 
 
 const Social = () => {
@@ -17,13 +18,16 @@ const Social = () => {
 
   const [searchQuery, setSearhQuery]: [string, Dispatch<SetStateAction<string>>] = useState("");
 
-  const searchResults = trpc.useQuery(["social.searchEngine", { searchQuery: searchQuery, user: user }]);
+  const notificationsResults = trpc.useQuery(["fetch.fetchUser", {username: user?.username}]);
+
+  const searchResults = trpc.useQuery(["social.searchEngine", { searchQuery: searchQuery, user: user, current_user_friends: notificationsResults.data?.users?.friends }]);
 
   const sendRequestMutation = trpc.useMutation(["social.sendFriendRequest"], {
     onSuccess: () => {
       searchResults.refetch();
     }
   });
+  
 
   const friendRequest = async(reqUserId: string, currUserId: string): Promise<void> => {
     const request = await sendRequestMutation.mutateAsync({current_user_id: currUserId, requested_user_id: reqUserId});
@@ -34,6 +38,7 @@ const Social = () => {
     setResponse(response);
   }
 
+  // TODO integrate notification system show,accept,decline etc.
   return (
     <div>
       Social
@@ -52,6 +57,8 @@ const Social = () => {
           );
         })}
       </div>
+
+      {user ? <Notifications user={user}/> : ""}
     </div>
   )
 }

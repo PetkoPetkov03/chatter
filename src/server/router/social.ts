@@ -11,7 +11,8 @@ export const socialRouter = createRouter()
                 username: z.string().nullish(),
                 admin: z.boolean().nullish()
             }).nullish(),
-            searchQuery: z.string().nullish()
+            searchQuery: z.string().nullish(),
+            current_user_friends: z.string().array().nullish()
         }).nullish(),
 
         async resolve({ input, ctx }) {
@@ -51,7 +52,7 @@ export const socialRouter = createRouter()
                         {
                             username: {
                                 startsWith: input.searchQuery,
-                                not: input.user.username
+                                not: input.user.username,
                             }
                         },
 
@@ -60,11 +61,16 @@ export const socialRouter = createRouter()
                                 notifications: {
                                     has: input.user.id
                                 }
-                            }
+                            },
                         }
                     ]
+                },
+                select: {
+                    id: true,
+                    username: true
                 }
             });
+            
 
             return {
                 searchResults: users
@@ -126,32 +132,13 @@ export const socialRouter = createRouter()
                 message: "Friend Request sent"
             }
         }
-    })
-    .query("fetchNotif", {
+    }).query("fetchNotifications", {
         input: z.object({
-            user: z.object({
-                id: z.string().cuid({ message: "invalid id" }).nullish(),
-                email: z.string().email({ message: "invalid email address" }).nullish(),
-                username: z.string().nullish(),
-                admin: z.boolean().nullish()
-            }).nullish()
+            id: z.string().cuid().nullish()
         }).nullish(),
 
         async resolve({ input, ctx }) {
-            if (!input?.user) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "No valid input"
-                });
-            }
-
-            if
-                (typeof input.user.admin !== "boolean" ||
-                typeof input.user.email !== "string" ||
-                typeof input.user.id !== "string" ||
-                typeof input.user.username !== "string") {
-
+            if(typeof input?.id !== "string") {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "User",
@@ -161,40 +148,26 @@ export const socialRouter = createRouter()
 
             const notifications = await ctx.prisma.user.findMany({
                 where: {
-                    id: input.user.id
+                    id: input.id
                 },
                 select: {
                     notifications: true
                 }
             });
 
-            if (!notifications) {
-                throw new TRPCError({
-                    code: "INTERNAL_SERVER_ERROR",
-                    cause: "Database",
-                    message: "database cant find notifications"
-                });
-            }
-            return {
-                notifications: notifications[0]?.notifications
-            }
+            console.log(notifications[0]);
+            
+            return notifications[0]!
         }
     })
-    .mutation("showFriendRequest", {
+    .mutation("acceptFriendRequest", {
         input: z.object({
-            ids: z.string().array().nullish()
+            req_user_id: z.string().cuid().nullish(),
+            curr_user_id: z.string().cuid().nullish()
         }).nullish(),
 
-        async resolve({ input, ctx }) {
-            if (!input) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "No valid input"
-                });
-            }
-
-            if (!input.ids) {
+        async resolve( { input, ctx } ) {
+            if(typeof input?.curr_user_id !== "string" || typeof input.req_user_id !== "string") {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "User",
@@ -202,21 +175,144 @@ export const socialRouter = createRouter()
                 });
             }
 
-            const showFriendRequest = await ctx.prisma.user.findMany({
+            const current_user_friends_notif = await ctx.prisma.user.findFirst({
                 where: {
-                    id: {
-                        in: input.ids
-                    }
+                    id: input.curr_user_id
                 },
-
                 select: {
-                    id: true,
-                    username: true
+                    notifications: true,
+                    friends: true
                 }
-            })
+            });
+
+            const requested_user_friends_notif = await ctx.prisma.user.findFirst({
+                where: {
+                    id: input.req_user_id
+                },
+                select: {
+                    notifications: true,
+                    friends: true
+                }
+            });
+
+            if(!current_user_friends_notif) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    cause: "Data missing"
+                });
+            }
+
+            if(!requested_user_friends_notif) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    cause: "Data missing"
+                });
+            }
+
+            const req_user_notifications = requested_user_friends_notif.notifications.map(notif => {
+                if(notif !== input.curr_user_id) {
+                    return notif
+                }
+                return "";
+            });
+
+            const current_user_notifications = current_user_friends_notif.notifications.map(notif => {
+                if(notif !== input.req_user_id) {
+                    return notif
+                }
+                return "";
+            });
+
+            if(!current_user_notifications) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    cause: "Data missing"
+                });
+            }
+
+            if(!req_user_notifications) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    cause: "Data missing"
+                });
+            }
+
+            await ctx.prisma.user.update({
+                where: {
+                    id: input.curr_user_id
+                },
+                data: {
+                    friends: [input.req_user_id, ...current_user_friends_notif.friends],
+                    notifications: current_user_notifications
+                }
+            });
+
+            await ctx.prisma.user.update({
+                where: {
+                    id: input.req_user_id
+                },
+                data: {
+                    friends: [input.curr_user_id, ...requested_user_friends_notif.friends],
+                    notifications: req_user_notifications
+                }
+            });
 
             return {
-                requests: showFriendRequest
+                id: input.req_user_id,
+                message: "User friend Request accepted"
+            }
+        }
+    })
+    .mutation("unfriend", {
+        input: z.object({
+            user_id: z.string().cuid().nullish(),
+            req_user_id: z.string().cuid().nullish()
+        }).nullish(),
+
+        async resolve({ input, ctx }) {
+            if(typeof input?.req_user_id !== "string" || typeof input.user_id !== "string") {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    cause: "User",
+                    message: "Type of Value not valid"
+                });
+            }
+
+            const current_user_friends = await ctx.prisma.user.findFirst({
+                where: {
+                    id: input.user_id
+                },
+                select: {
+                    friends: true
+                }
+            });
+
+            if(!current_user_friends) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR"
+                });
+            }
+
+            const new_friend_list = current_user_friends.friends.map(id => {
+                if(id !== input.req_user_id) { 
+                    return id
+                }else {
+                    return ""
+                }
+            });
+
+            await ctx.prisma.user.update({
+                where: {
+                    id: input.user_id
+                },
+                data: {
+                    friends: new_friend_list
+                }
+            });
+
+            return {
+                id: input.req_user_id,
+                message: "Friend removed"
             }
         }
     });
