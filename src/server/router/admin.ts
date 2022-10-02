@@ -79,4 +79,17 @@ export const adminActions = createRouter()
                 message: "Access granted"
             }
         }
+    })
+    .query("fetchReports", {
+        async resolve({ ctx }) { 
+            const reports = await ctx.prisma.reports.findMany({
+                orderBy: {
+                    date: "desc"
+                }
+            });
+
+            return {
+                reports: reports
+            }
+        }
     });

@@ -1,26 +1,43 @@
 import { TRPCError } from "@trpc/server";
 import { createRouter } from "./context";
 import * as z from "zod";
+import { Reports, Restrictions, User, } from "@prisma/client";
+import user from "../../pages/api/auth/user";
+
+const UserSchema: z.ZodSchema<User> = z.object({
+        id: z.string().cuid(),
+        email: z.string(),
+        username: z.string(),
+        password: z.string(),
+        admin: z.boolean(),
+        chatrooms: z.string().array(),
+        friends: z.string().array(),
+        notifications: z.string().array()
+});
 
 export const socialRouter = createRouter()
     .query("searchEngine", {
-        input: z.object({
-            user: z.object({
-                id: z.string().cuid({ message: "invalid id" }).nullish(),
-                email: z.string().email({ message: "invalid email" }).nullish(),
-                username: z.string().nullish(),
-                admin: z.boolean().nullish()
-            }).nullish(),
-            searchQuery: z.string().nullish(),
-            current_user_friends: z.string().array().nullish()
-        }).nullish(),
+        input: z
+            .object({
+                user: z
+                    .object({
+                        id: z.string().cuid({ message: "invalid id" }).nullish(),
+                        email: z.string().email({ message: "invalid email" }).nullish(),
+                        username: z.string().nullish(),
+                        admin: z.boolean().nullish(),
+                    })
+                    .nullish(),
+                searchQuery: z.string().nullish(),
+                current_user_friends: z.string().array().nullish(),
+            })
+            .nullish(),
 
         async resolve({ input, ctx }) {
             if (!input?.searchQuery) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "User",
-                    message: "No search query"
+                    message: "No search query",
                 });
             }
 
@@ -28,7 +45,7 @@ export const socialRouter = createRouter()
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "User",
-                    message: "Pass a user"
+                    message: "Pass a user",
                 });
             }
 
@@ -41,10 +58,9 @@ export const socialRouter = createRouter()
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     cause: "Authorization",
-                    message: "Cookie Error"
+                    message: "Cookie Error",
                 });
             }
-
 
             const users = await ctx.prisma.user.findMany({
                 where: {
@@ -53,266 +69,326 @@ export const socialRouter = createRouter()
                             username: {
                                 startsWith: input.searchQuery,
                                 not: input.user.username,
-                            }
+                            },
                         },
 
                         {
                             NOT: {
                                 notifications: {
-                                    has: input.user.id
-                                }
+                                    has: input.user.id,
+                                },
                             },
-                        }
-                    ]
+                        },
+                    ],
                 },
                 select: {
                     id: true,
-                    username: true
-                }
+                    username: true,
+                },
             });
-            
 
             return {
-                searchResults: users
+                searchResults: users,
             };
-        }
+        },
     })
     .mutation("sendFriendRequest", {
-        input: z.object({
-            requested_user_id: z.string().cuid({ message: "invalid id" }).nullish(),
-            current_user_id: z.string().cuid({ message: "invalid id" }).nullish()
-        }).nullish(),
+        input: z
+            .object({
+                requested_user_id: z.string().cuid({ message: "invalid id" }).nullish(),
+                current_user_id: z.string().cuid({ message: "invalid id" }).nullish(),
+            })
+            .nullish(),
 
         async resolve({ input, ctx }) {
             if (!input) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "User",
-                    message: "no valid parameters"
+                    message: "no valid parameters",
                 });
             }
 
-            if (typeof input.current_user_id !== "string" || typeof input.requested_user_id !== "string") {
+            if (
+                typeof input.current_user_id !== "string" ||
+                typeof input.requested_user_id !== "string"
+            ) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "User",
-                    message: "Arguments not a valid type!"
+                    message: "Arguments not a valid type!",
                 });
             }
 
             const requested_user_notifications = await ctx.prisma.user.findFirst({
                 where: {
-                    id: input.requested_user_id
+                    id: input.requested_user_id,
                 },
 
                 select: {
-                    notifications: true
-                }
+                    notifications: true,
+                },
             });
 
             if (!requested_user_notifications?.notifications) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     cause: "Prisma",
-                    message: "Error with user query"
+                    message: "Error with user query",
                 });
             }
 
             await ctx.prisma.user.update({
                 where: {
-                    id: input.requested_user_id
+                    id: input.requested_user_id,
                 },
                 data: {
-                    notifications: [input.current_user_id, ...requested_user_notifications.notifications]
-                }
+                    notifications: [
+                        input.current_user_id,
+                        ...requested_user_notifications.notifications,
+                    ],
+                },
             });
 
             return {
                 id: input.requested_user_id,
-                message: "Friend Request sent"
-            }
-        }
-    }).query("fetchNotifications", {
-        input: z.object({
-            id: z.string().cuid().nullish()
-        }).nullish(),
+                message: "Friend Request sent",
+            };
+        },
+    })
+    .query("fetchNotifications", {
+        input: z
+            .object({
+                id: z.string().cuid().nullish(),
+            })
+            .nullish(),
 
         async resolve({ input, ctx }) {
-            if(typeof input?.id !== "string") {
+            if (typeof input?.id !== "string") {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "User",
-                    message: "Type of Value not valid"
+                    message: "Type of Value not valid",
                 });
             }
 
             const notifications = await ctx.prisma.user.findMany({
                 where: {
-                    id: input.id
+                    id: input.id,
                 },
                 select: {
-                    notifications: true
-                }
+                    notifications: true,
+                },
             });
 
             console.log(notifications[0]);
-            
-            return notifications[0]!
-        }
+
+            return notifications[0]!;
+        },
     })
     .mutation("acceptFriendRequest", {
-        input: z.object({
-            req_user_id: z.string().cuid().nullish(),
-            curr_user_id: z.string().cuid().nullish()
-        }).nullish(),
+        input: z
+            .object({
+                req_user_id: z.string().cuid().nullish(),
+                curr_user_id: z.string().cuid().nullish(),
+            })
+            .nullish(),
 
-        async resolve( { input, ctx } ) {
-            if(typeof input?.curr_user_id !== "string" || typeof input.req_user_id !== "string") {
+        async resolve({ input, ctx }) {
+            if (
+                typeof input?.curr_user_id !== "string" ||
+                typeof input.req_user_id !== "string"
+            ) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "User",
-                    message: "Type of Value not valid"
+                    message: "Type of Value not valid",
                 });
             }
 
             const current_user_friends_notif = await ctx.prisma.user.findFirst({
                 where: {
-                    id: input.curr_user_id
+                    id: input.curr_user_id,
                 },
                 select: {
                     notifications: true,
-                    friends: true
-                }
+                    friends: true,
+                },
             });
 
             const requested_user_friends_notif = await ctx.prisma.user.findFirst({
                 where: {
-                    id: input.req_user_id
+                    id: input.req_user_id,
                 },
                 select: {
                     notifications: true,
-                    friends: true
-                }
+                    friends: true,
+                },
             });
 
-            if(!current_user_friends_notif) {
+            if (!current_user_friends_notif) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
-                    cause: "Data missing"
+                    cause: "Data missing",
                 });
             }
 
-            if(!requested_user_friends_notif) {
+            if (!requested_user_friends_notif) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
-                    cause: "Data missing"
+                    cause: "Data missing",
                 });
             }
 
-            const req_user_notifications = requested_user_friends_notif.notifications.map(notif => {
-                if(notif !== input.curr_user_id) {
-                    return notif
-                }
-                return "";
-            });
+            const req_user_notifications =
+                requested_user_friends_notif.notifications.map((notif) => {
+                    if (notif !== input.curr_user_id) {
+                        return notif;
+                    }
+                    return "";
+                });
 
-            const current_user_notifications = current_user_friends_notif.notifications.map(notif => {
-                if(notif !== input.req_user_id) {
-                    return notif
-                }
-                return "";
-            });
+            const current_user_notifications =
+                current_user_friends_notif.notifications.map((notif) => {
+                    if (notif !== input.req_user_id) {
+                        return notif;
+                    }
+                    return "";
+                });
 
-            if(!current_user_notifications) {
+            if (!current_user_notifications) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
-                    cause: "Data missing"
+                    cause: "Data missing",
                 });
             }
 
-            if(!req_user_notifications) {
+            if (!req_user_notifications) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
-                    cause: "Data missing"
+                    cause: "Data missing",
                 });
             }
 
             await ctx.prisma.user.update({
                 where: {
-                    id: input.curr_user_id
+                    id: input.curr_user_id,
                 },
                 data: {
                     friends: [input.req_user_id, ...current_user_friends_notif.friends],
-                    notifications: current_user_notifications
-                }
+                    notifications: current_user_notifications,
+                },
             });
 
             await ctx.prisma.user.update({
                 where: {
-                    id: input.req_user_id
+                    id: input.req_user_id,
                 },
                 data: {
-                    friends: [input.curr_user_id, ...requested_user_friends_notif.friends],
-                    notifications: req_user_notifications
-                }
+                    friends: [
+                        input.curr_user_id,
+                        ...requested_user_friends_notif.friends,
+                    ],
+                    notifications: req_user_notifications,
+                },
             });
 
             return {
                 id: input.req_user_id,
-                message: "User friend Request accepted"
-            }
-        }
+                message: "User friend Request accepted",
+            };
+        },
     })
     .mutation("unfriend", {
-        input: z.object({
-            user_id: z.string().cuid().nullish(),
-            req_user_id: z.string().cuid().nullish()
-        }).nullish(),
+        input: z
+            .object({
+                user_id: z.string().cuid().nullish(),
+                req_user_id: z.string().cuid().nullish(),
+            })
+            .nullish(),
 
         async resolve({ input, ctx }) {
-            if(typeof input?.req_user_id !== "string" || typeof input.user_id !== "string") {
+            if (
+                typeof input?.req_user_id !== "string" ||
+                typeof input.user_id !== "string"
+            ) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "User",
-                    message: "Type of Value not valid"
+                    message: "Type of Value not valid",
                 });
             }
 
             const current_user_friends = await ctx.prisma.user.findFirst({
                 where: {
-                    id: input.user_id
+                    id: input.user_id,
                 },
                 select: {
-                    friends: true
-                }
+                    friends: true,
+                },
             });
 
-            if(!current_user_friends) {
+            if (!current_user_friends) {
                 throw new TRPCError({
-                    code: "INTERNAL_SERVER_ERROR"
+                    code: "INTERNAL_SERVER_ERROR",
                 });
             }
 
-            const new_friend_list = current_user_friends.friends.map(id => {
-                if(id !== input.req_user_id) { 
-                    return id
-                }else {
-                    return ""
+            const new_friend_list = current_user_friends.friends.map((id) => {
+                if (id !== input.req_user_id) {
+                    return id;
+                } else {
+                    return "";
                 }
             });
 
             await ctx.prisma.user.update({
                 where: {
-                    id: input.user_id
+                    id: input.user_id,
                 },
                 data: {
-                    friends: new_friend_list
-                }
+                    friends: new_friend_list,
+                },
             });
 
             return {
                 id: input.req_user_id,
-                message: "Friend removed"
+                message: "Friend removed",
+            };
+        },
+    })
+    .mutation("report", {
+        input: z
+            .object({
+                id: z.string().cuid().nullish(),
+                repType: z.string().nullish(),
+                description: z.string().nullish(),
+                user: UserSchema
+            })
+            .nullish(),
+
+        async resolve({ input, ctx }) {
+            // TODO Introduce Report Logic
+            if (typeof input?.description !== "string" || typeof input.id !== "string" || typeof input.repType !== "string") {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    cause: "Types not matched",
+                    message: "Type of Value not valid",
+                });
             }
-        }
+
+            
+            await ctx.prisma.reports.create({
+                data: {
+                    message: input.description,
+                    userId: input.user.id,
+                    submiterId: input.id,
+                    reportType: input.repType,
+                }
+            });
+
+            return {
+                message: "Report sent!",
+            };
+        },
     });

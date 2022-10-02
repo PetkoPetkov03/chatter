@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Restrictions" ALTER COLUMN "duration" SET DEFAULT CURRENT_TIMESTAMP;

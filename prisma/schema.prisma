@@ -18,15 +18,26 @@ model User {
   friends String[] @default([])
   chatrooms String[] @default([])
   notifications String[] @default([])
-  // priviligesStatus Restrictions[]
+  priviligesStatus Restrictions[]
+  reports Reports[]
   password String
 }
 
-// TODO uncoment this + line 21 when you have access to prisma
-// model Restrictions {
-//   id String @id @default(cuid())
-//   userId String
-//   user User? @relation(fields: [userId], references: [id])
-//   restrictions Boolean
-//   reason String
-// }
+model Reports {
+  id String @id @default(cuid())
+  userId String
+  user User? @relation(fields: [userId], references: [id])
+  reportType String
+  submiterId String
+  message String
+  date DateTime @default(now())
+}
+
+model Restrictions {
+  id String @id @default(cuid())
+  userId String
+  user User? @relation(fields: [userId], references: [id])
+  restrictions String @default("Ban")
+  reason String
+  duration DateTime @default(now())
+}
