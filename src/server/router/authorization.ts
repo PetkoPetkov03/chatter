@@ -46,7 +46,7 @@ export const authRouter = createRouter()
                 });
             }
 
-            const saltRounds: number = process.env.SALT! as unknown as number
+            const saltRounds: number = process.env.SALT as unknown as number
             
             const salt = bcrypt.genSaltSync(saltRounds);
 

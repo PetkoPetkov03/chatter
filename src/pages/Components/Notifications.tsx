@@ -5,7 +5,8 @@ import { trpc } from '../../utils/trpc';
 
 
 interface NotificationProps {
-  user: User
+  user: User,
+  reqMutation: VoidFunction
 }
 
 const Notifications = (props: NotificationProps) => {
@@ -25,6 +26,7 @@ const Notifications = (props: NotificationProps) => {
 
     setMessageId(request.id);
     setMessage(request.message)
+    props.reqMutation();
     fetchNotifIds.refetch();
   }
 

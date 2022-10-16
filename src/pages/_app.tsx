@@ -13,12 +13,9 @@ import { RecoilRoot, useRecoilState } from "recoil";
 import Layout from "./Components/Layout";
 import { userState } from "../libs/atoms";
 import React, { useEffect } from "react";
-import { useRouter } from "next/router";
 
 const Wrapper = ({children}: React.PropsWithChildren) => {
-  const [_user, setUser] = useRecoilState(userState);
-  
-  const router = useRouter()
+  const [, setUser] = useRecoilState(userState);
 
   const fetchUser = async () => {
     const request = await fetch("/api/auth/user", {
@@ -32,7 +29,7 @@ const Wrapper = ({children}: React.PropsWithChildren) => {
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  });
   return <Layout>{children}</Layout>
 }
 

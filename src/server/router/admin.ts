@@ -18,8 +18,6 @@ export const adminActions = createRouter()
                 });
             }
             
-            console.log(input.id, input.currentPrivilages);
-            
             if (typeof input.id !== "string" || typeof input.currentPrivilages !== "boolean") {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
@@ -53,7 +51,7 @@ export const adminActions = createRouter()
         input: z.object({
             password: z.string().nullish()
         }).nullish(),
-        async resolve({ input, ctx }) {
+        async resolve({ input }) {
             if (typeof input?.password === "undefined") {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
@@ -63,8 +61,6 @@ export const adminActions = createRouter()
             }
 
             const adminPassword = process.env.ADMIN_PASS as string;
-
-            console.log(adminPassword, input.password);
 
 
             if (input.password !== adminPassword) {

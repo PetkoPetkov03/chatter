@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { userState } from '../../libs/atoms';
 import { useRecoilValue } from 'recoil';
-import { trpc } from '../../utils/trpc';
 
 const Admin = () => {
     const router = useRouter();

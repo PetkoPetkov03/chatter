@@ -7,7 +7,7 @@ import { signinProxie } from '../proxies/signin';
 import { createCookieProxie } from '../proxies/cookie';
 
 const Signin = () => {
-    const [user, setUser] = useRecoilState(userState);
+    const [, setUser] = useRecoilState(userState);
 
 
     const fetchUser = async () => {
@@ -29,7 +29,7 @@ const Signin = () => {
     const [formDisable, setFormDisable]: [boolean, Dispatch<SetStateAction<boolean>>] = useState(false);
 
     const signInMutation = trpc.useMutation(["auth.login"], {
-        onError(error, variables, context) {
+        onError(error) {
             setStatus(error.message)
             setFormDisable(false);
         },
@@ -64,6 +64,7 @@ const Signin = () => {
         <div className='register-wrapper' >
             <h1>Sign In</h1>
 
+            {/* eslint-disable-next-line jsx-a11y/role-supports-aria-props */}
             <form aria-disabled={formDisable} className='form-register' onSubmit={(event) => {
                 signin(event)
             }}>

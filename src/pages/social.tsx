@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import React, { Dispatch, SetStateAction, useState } from 'react'
 import { userState } from '../libs/atoms';
 import { useRecoilValue } from 'recoil';
 import { trpc } from '../utils/trpc';
@@ -7,12 +7,7 @@ import Notifications from './Components/Notifications';
 
 const Social = () => {
 
-  type Response = {
-    message: string,
-    id: string
-  } | undefined
-
-  const [response, setResponse]: [Response, Dispatch<SetStateAction<Response>>] = useState();
+  const [responseMessage, setResponseMessage]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
 
   const user = useRecoilValue(userState);
 
@@ -35,7 +30,7 @@ const Social = () => {
       id: request.id,
       message: request.message
     }
-    setResponse(response);
+    setResponseMessage(response.message);
   }
 
   // TODO integrate notification system show,accept,decline etc.
@@ -50,7 +45,7 @@ const Social = () => {
               <h1>{query.username}</h1>
               {!user ? "" : <div>
               <button onClick={() => friendRequest(query.id, user.id)} >Send Friend Request!</button>
-              {response && query.id === response.id ? response.message : ""}
+              {responseMessage}
                 </div>}
               
             </div>
@@ -58,7 +53,7 @@ const Social = () => {
         })}
       </div>
 
-      {user ? <Notifications user={user}/> : ""}
+      {user ? <Notifications reqMutation={searchResults.refetch} user={user}/> : ""}
     </div>
   )
 }

@@ -1,7 +1,6 @@
-import React, {SetStateAction, Dispatch, useState, useEffect} from 'react';
+import React from 'react';
 import { userState } from '../libs/atoms';
-import { useSetRecoilState, useRecoilValue } from 'recoil';
-import { useRouter } from 'next/router';
+import { useRecoilValue } from 'recoil';
 
 const Home = () => {
   const user = useRecoilValue(userState);

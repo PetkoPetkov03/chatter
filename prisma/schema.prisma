@@ -19,6 +19,7 @@ model User {
   chatrooms String[] @default([])
   notifications String[] @default([])
   priviligesStatus Restrictions[]
+  icon String @default("/public/images/base.png")
   reports Reports[]
   password String
 }

@@ -1,8 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { createRouter } from "./context";
 import * as z from "zod";
-import { Reports, Restrictions, User, } from "@prisma/client";
-import user from "../../pages/api/auth/user";
+import { User } from "@prisma/client";
 
 const UserSchema: z.ZodSchema<User> = z.object({
         id: z.string().cuid(),
@@ -12,6 +11,7 @@ const UserSchema: z.ZodSchema<User> = z.object({
         admin: z.boolean(),
         chatrooms: z.string().array(),
         friends: z.string().array(),
+        icon: z.string(),
         notifications: z.string().array()
 });
 
@@ -73,11 +73,16 @@ export const socialRouter = createRouter()
                         },
 
                         {
-                            NOT: {
-                                notifications: {
+                            NOT: [
+                               { notifications: {
                                     has: input.user.id,
-                                },
-                            },
+                                }},
+                                {
+                                    friends: {
+                                        has: input.user.id
+                                    }
+                                }
+                            ]
                         },
                     ],
                 },
@@ -138,6 +143,22 @@ export const socialRouter = createRouter()
                 });
             }
 
+            const current_user_notifications = await ctx.prisma.user.findFirst({
+                where: {
+                    id: input.current_user_id
+                },
+
+                select: {
+                    notifications: true
+                }
+            });
+
+            if(current_user_notifications?.notifications.includes(input.requested_user_id)) {
+                return {
+                    message: "User is already in your notifications!"
+                }
+            }
+
             await ctx.prisma.user.update({
                 where: {
                     id: input.requested_user_id,
@@ -181,9 +202,9 @@ export const socialRouter = createRouter()
                 },
             });
 
-            console.log(notifications[0]);
+            (notifications[0]);
 
-            return notifications[0]!;
+            return notifications[0];
         },
     })
     .mutation("acceptFriendRequest", {

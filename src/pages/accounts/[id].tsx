@@ -3,6 +3,7 @@ import { useRouter } from "next/router"
 import { trpc } from '../../utils/trpc';
 import type { NextPage } from 'next';
 import ReportComponent from '../Components/ReportComponent';
+import Upload from '../Components/Upload';
 
 const Account: NextPage = (): JSX.Element => {
     const [currentUserAvailable, setCurrentUserAvailable]: [boolean, Dispatch<SetStateAction<boolean>>] =  useState(false);
@@ -46,6 +47,7 @@ const Account: NextPage = (): JSX.Element => {
     return (
         <div>
             Account
+            <Upload userId={id as string} />
             <h1>Username</h1>
             {fetchCurrentUserQuery.data?.user?.username}
 

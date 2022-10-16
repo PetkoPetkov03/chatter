@@ -36,6 +36,7 @@ const Register = () => {
         <div className='register-wrapper' >
             <h1>Register</h1>
 
+            {/* eslint-disable-next-line jsx-a11y/role-supports-aria-props */}
             <form aria-disabled={formDisable} className='form-register' onSubmit={(event) => {
                 registerUser(event)
             }}>

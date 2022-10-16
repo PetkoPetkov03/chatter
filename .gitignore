@@ -8,6 +8,9 @@
 # testing
 /coverage
 
+/public/images/*
+!/public/images/base.png
+
 # database
 /prisma/db.sqlite
 /prisma/db.sqlite-journal

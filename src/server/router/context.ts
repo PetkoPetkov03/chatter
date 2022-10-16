@@ -12,6 +12,7 @@ type CreateContextOptions = Record<string, never>;
  * - testing, where we dont have to Mock Next.js' req/res
  * - trpc's `createSSGHelpers` where we don't have req/res
  **/
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createContextInner = async (opts: CreateContextOptions) => {
   return {
     prisma,
@@ -23,6 +24,7 @@ export const createContextInner = async (opts: CreateContextOptions) => {
  * @link https://trpc.io/docs/context
  **/
 export const createContext = async (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   opts: trpcNext.CreateNextContextOptions,
 ) => {
   return await createContextInner({});
