@@ -56,14 +56,17 @@ const Upload = (props: UploadProps) => {
         });
 
         const parsed_result = await result.json();
-        await uploadIconMutation.mutateAsync({
+        uploadIconMutation.mutateAsync({
             userId: props.userId,
             path: parsed_result.path
         });
+
+        window.location.reload();
     }
+    
     return (
         <div>
-            <FilePond allowFileEncode={true} allowMultiple={false} allowDrop={false} maxFiles={1} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
+            <FilePond  allowFileEncode={true} allowMultiple={false} allowDrop={false} maxFiles={1} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
             <button onClick={generatePictureServer}>SSSSSSSS</button>
         </div>
     )

@@ -1,5 +1,9 @@
 import { env } from "./src/env/server.mjs";
+import * as webAnalyzer from "@next/bundle-analyzer";
 
+const confWebAnalyzer = webAnalyzer.default({
+  enabled: process.env.ANALYZE === 'true'
+});
 /**
  * Don't be scared of the generics here.
  * All they do is to give us autocompletion when using this.
@@ -12,7 +16,7 @@ function defineNextConfig(config) {
   return config;
 }
 
-export default defineNextConfig({
+export default confWebAnalyzer(defineNextConfig({
   reactStrictMode: true,
   swcMinify: true,
-});
+}));

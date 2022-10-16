@@ -202,8 +202,6 @@ export const socialRouter = createRouter()
                 },
             });
 
-            (notifications[0]);
-
             return notifications[0];
         },
     })
