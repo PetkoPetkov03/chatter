@@ -15,19 +15,19 @@ const Account: NextPage = (): JSX.Element => {
 
     const idString = id as string
 
-    const fetchCurrentUserQuery = trpc.useQuery(["fetch.fetchUserById", { id:  idString}], {
+    const {data: fetchCurrentUser, isLoading: fetchCurrentUserIsLoading} = trpc.useQuery(["fetch.fetchUserById", { id:  idString}], {
         onSuccess: () => {
             setCurrentUserAvailable(true);
         }
     });
 
-    const fetchFriendList = trpc.useQuery(["fetch.fetchMultiple" , {ids: friendListIds as string[]}]);
+    const {data: fetchMultiple, isLoading: fetchMultipleIsLoading, refetch: fetchMultipleRefetch} = trpc.useQuery(["fetch.fetchMultiple" , {ids: friendListIds as string[]}]);
 
     const unfriendUser = trpc.useMutation(["social.unfriend"]);
 
     const unfirend = async(id: string) => {
         unfriendUser.mutateAsync({user_id: idString, req_user_id: id});        
-        fetchFriendList.refetch();
+        fetchMultipleRefetch();
     };
 
     const reportAssign = async(id: string) => {
@@ -37,28 +37,28 @@ const Account: NextPage = (): JSX.Element => {
 
 
     useEffect(() => {
-        const ids = fetchCurrentUserQuery.data?.user?.friends.map(userId => {
+        const ids = fetchCurrentUser?.user?.friends.map(userId => {
             return userId;
         });
 
         setFriendListIds(ids);
-    }, [currentUserAvailable, fetchCurrentUserQuery.data?.user?.friends]);
+    }, [currentUserAvailable, fetchCurrentUser?.user?.friends]);
 
     return (
         <div>
             Account
             <Upload userId={id as string} />
             <h1>Username</h1>
-            {fetchCurrentUserQuery.data?.user?.username}
+            {fetchCurrentUser?.user?.username}
 
             <span>friend list</span>
-            {fetchFriendList.data?.users.map(user => {
+            {fetchMultiple?.users.map(user => {
                 return (
                     <div key={user.id} >
                         <h1>Username: {user.username}</h1>
                         <button onClick={() => unfirend(user.id)} >Unfriend</button>
                         <button onClick={() => reportAssign(user.id)} >Report</button>
-                        {reportTrigger && (reportId === user.id) && typeof fetchCurrentUserQuery.data?.user !== "undefined" && fetchCurrentUserQuery.data?.user ? <ReportComponent User={fetchCurrentUserQuery.data?.user} RepId={reportId} RepTrigger={reportTrigger} SetRepTrigger={setReportTrigger} /> : ""}
+                        {reportTrigger && (reportId === user.id) && typeof fetchCurrentUser?.user !== "undefined" && fetchCurrentUser.user ? <ReportComponent User={fetchCurrentUser.user} RepId={reportId} RepTrigger={reportTrigger} SetRepTrigger={setReportTrigger} /> : ""}
                     </div>
                 )
             })}

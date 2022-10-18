@@ -13,13 +13,13 @@ const Social = () => {
 
   const [searchQuery, setSearhQuery]: [string, Dispatch<SetStateAction<string>>] = useState("");
 
-  const notificationsResults = trpc.useQuery(["fetch.fetchUser", {username: user?.username}]);
+  const {data: notifications, isLoading: isLoadingNotifications} = trpc.useQuery(["fetch.fetchUser", {username: user?.username}]);
 
-  const searchResults = trpc.useQuery(["social.searchEngine", { searchQuery: searchQuery, user: user, current_user_friends: notificationsResults.data?.users?.friends }]);
+  const {data: search, isLoading: isLoadingSearch, refetch: searchRefetch} = trpc.useQuery(["social.searchEngine", { searchQuery: searchQuery, user: user, current_user_friends: notifications?.users?.friends }]);
 
   const sendRequestMutation = trpc.useMutation(["social.sendFriendRequest"], {
     onSuccess: () => {
-      searchResults.refetch();
+      searchRefetch();
     }
   });
   
@@ -39,7 +39,7 @@ const Social = () => {
       Social
       <input type="text" onChange={(e) => setSearhQuery(e.target.value)} />
       <div>
-        {searchResults.data?.searchResults.map((query) => {
+        {search?.searchResults.map((query) => {
           return (
             <div key={query.id} className="queryResult">
               <h1>{query.username}</h1>
@@ -53,7 +53,7 @@ const Social = () => {
         })}
       </div>
 
-      {user ? <Notifications reqMutation={searchResults.refetch} user={user}/> : ""}
+      {user ? <Notifications reqMutation={searchRefetch} user={user}/> : ""}
     </div>
   )
 }

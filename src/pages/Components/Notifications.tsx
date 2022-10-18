@@ -16,8 +16,8 @@ const Notifications = (props: NotificationProps) => {
   const [message, setMessage]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
 
   const [notificationsIds, setNotificationsIds]: [string [], Dispatch<SetStateAction<string[]>>] = useState([""]);
-  const fetchNotifIds = trpc.useQuery(["social.fetchNotifications", {id: user?.id}]);
-  const fetchNotifInfo = trpc.useQuery(["fetch.fetchMultiple", {ids: notificationsIds}]);
+  const {data: fetchNotifIds, isLoading: notifIsLoading, refetch: refetchNotifs} = trpc.useQuery(["social.fetchNotifications", {id: user?.id}]);
+  const {data: fetchNotifInfo, isLoading: notifIdsIsLoading} = trpc.useQuery(["fetch.fetchMultiple", {ids: notificationsIds}]);
 
   const acceptFriendRequestMutation = trpc.useMutation("social.acceptFriendRequest");
 
@@ -27,19 +27,19 @@ const Notifications = (props: NotificationProps) => {
     setMessageId(request.id);
     setMessage(request.message)
     props.reqMutation();
-    fetchNotifIds.refetch();
+    refetchNotifs();
   }
 
   useEffect(() => {
-    if(!fetchNotifIds.data) {
+    if(!fetchNotifIds) {
       return;
     }
-    setNotificationsIds(fetchNotifIds.data.notifications);
+    setNotificationsIds(fetchNotifIds.notifications);
   }, [fetchNotifIds]);
   return (
     <div>
       Notifications
-      {fetchNotifInfo.data?.users.map(notif => {
+      {fetchNotifInfo?.users.map(notif => {
         return (
           <div key={notif.id}>
             {notif.username}
