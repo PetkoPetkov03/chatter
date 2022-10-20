@@ -1,6 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { createRouter } from "./context";
 import * as z from "zod";
+import { UserSchema } from "../../types/UserTypes";
+import type { User } from "../../types/UserTypes"
 
 export const adminActions = createRouter()
     .mutation("givePriviliges", {
@@ -17,7 +19,7 @@ export const adminActions = createRouter()
                     message: "Missing input"
                 });
             }
-            
+
             if (typeof input.id !== "string" || typeof input.currentPrivilages !== "boolean") {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
@@ -77,7 +79,19 @@ export const adminActions = createRouter()
         }
     })
     .query("fetchReports", {
-        async resolve({ ctx }) { 
+        input: z.object({
+            user_STATUS: z.boolean()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+            if (typeof input?.user_STATUS !== "boolean") {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    cause: "User",
+                    message: "Types do not match"
+                });
+            }
+            
+
             const reports = await ctx.prisma.reports.findMany({
                 orderBy: {
                     date: "desc"

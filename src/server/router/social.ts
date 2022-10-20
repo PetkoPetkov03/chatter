@@ -2,18 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { createRouter } from "./context";
 import * as z from "zod";
 import { User } from "@prisma/client";
-
-const UserSchema: z.ZodSchema<User> = z.object({
-        id: z.string().cuid(),
-        email: z.string(),
-        username: z.string(),
-        password: z.string(),
-        admin: z.boolean(),
-        chatrooms: z.string().array(),
-        friends: z.string().array(),
-        icon: z.string(),
-        notifications: z.string().array()
-});
+import { UserSchema } from "../../types/UserTypes";
 
 export const socialRouter = createRouter()
     .query("searchEngine", {
@@ -388,7 +377,7 @@ export const socialRouter = createRouter()
 
         async resolve({ input, ctx }) {
             // TODO Introduce Report Logic
-            if (typeof input?.description !== "string" || typeof input.id !== "string" || typeof input.repType !== "string") {
+            if (typeof input?.description !== "string" || typeof input.id !== "string" || typeof input.repType !== "string" || typeof input.user?.id !== "string") {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "Types not matched",
