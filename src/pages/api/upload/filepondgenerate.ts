@@ -16,15 +16,15 @@ export default function filepondstorageRoute(req: NextApiRequest, res: NextApiRe
             
         });
 
-        const fileName: string = req.body.fileName as string;
-        if(fileName.match(/\.\.\//g) !== null) {
+        const filePath: string = `public/images/${req.body.fileName}`;
+        if(filePath.match(/\.\.\//g) !== null) {
             throw new TRPCError({
                 code: "FORBIDDEN",
                 cause: "Unauthorized use",
                 message: "Attempted path traversal"
             });
         }
-        writeFile(`public/images/${fileName}`, req.body.fileBase64String, "base64", (err) => {
+        writeFile(filePath, req.body.fileBase64String, "base64", (err) => {
             if(err){
                 throw new Error("");
             }
