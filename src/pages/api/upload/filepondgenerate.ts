@@ -24,7 +24,7 @@ export default function filepondstorageRoute(req: NextApiRequest, res: NextApiRe
                 message: "Attempted path traversal"
             });
         }
-        writeFile(`./public/images/${fileName}`, req.body.fileBase64String, "base64", (err) => {
+        writeFile(`public/images/${fileName}`, req.body.fileBase64String, "base64", (err) => {
             if(err){
                 throw new Error("");
             }
