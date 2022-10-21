@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { readdir, writeFile, mkdir } from "fs";
+import { TRPCError } from "@trpc/server";
 
 export default function filepondstorageRoute(req: NextApiRequest, res: NextApiResponse) {
     
@@ -14,7 +15,16 @@ export default function filepondstorageRoute(req: NextApiRequest, res: NextApiRe
             }
             
         });
-        writeFile(`./public/images/${req.body.fileName}`, req.body.fileBase64String, "base64", (err) => {
+
+        const fileName: string = req.body.fileName as string;
+        if(fileName.match(/\.\.\//g) !== null) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                cause: "Unauthorized use",
+                message: "Attempted path traversal"
+            });
+        }
+        writeFile(`./public/images/${fileName}`, req.body.fileBase64String, "base64", (err) => {
             if(err){
                 throw new Error("");
             }
