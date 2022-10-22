@@ -15,7 +15,7 @@ export default function filepondstorageRoute(req: NextApiRequest, res: NextApiRe
             
         });
 
-        const filePath: string = `public/images/${req.body.fileName}`;
+        const filePath: string = `public/images/${req.body.fileName}` as string;
         if(filePath.match(/\.\.\//g) !== null) {
             throw new TRPCError({
                 code: "FORBIDDEN",
