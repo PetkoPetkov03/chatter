@@ -3,7 +3,6 @@ import { readdir, writeFile, mkdir } from "fs";
 import { TRPCError } from "@trpc/server";
 
 export default function filepondstorageRoute(req: NextApiRequest, res: NextApiResponse) {
-    
     if(req.method === "POST") {
         readdir("./public/images", async(err, result) => {
             if(typeof result === "undefined") {
