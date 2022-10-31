@@ -15,7 +15,10 @@ export default function filepondstorageRoute(req: NextApiRequest, res: NextApiRe
             
         });
 
-        const filePath: string = `public/images/${req.body.fileName}` as string;
+        const randString = Math.random().toString(36).slice(2, 7);
+
+        const fileName = randString + req.body.fileName as string;
+        const filePath: string = `public/images/${fileName}` as string;
         if(filePath.match(/\.\.\//g) !== null) {
             throw new TRPCError({
                 code: "FORBIDDEN",
@@ -29,7 +32,16 @@ export default function filepondstorageRoute(req: NextApiRequest, res: NextApiRe
             }
         });
         res.json({
-            path: `/public/images/${req.body.fileName}`
+            path: `/images/${fileName}`
         });
     }
 }
+
+export const config = {
+    api: {
+      bodyParser: {
+        sizeLimit: '20mb',
+      },
+    },
+  }
+  

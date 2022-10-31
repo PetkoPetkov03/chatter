@@ -16,11 +16,11 @@ model User {
   username String @unique
   admin Boolean @default(false)
   friends String[] @default([])
-  chatrooms String[] @default([])
   notifications String[] @default([])
   priviligesStatus Restrictions[]
   icon String @default("/public/images/base.png")
   reports Reports[]
+  chatrooms String[]
   password String
 }
 
@@ -41,4 +41,23 @@ model Restrictions {
   restrictions String @default("Ban")
   reason String
   duration DateTime @default(now())
+}
+
+model Chatrooms {
+  id String @id @default(cuid())
+  adminId String
+  name String @unique
+  messages Messages[]
+  participants String[]
+  date DateTime @default(now()) @ignore
+}
+
+model Messages {
+  id String @id @default(cuid())
+  messageId String @default(cuid())
+  chatroom Chatrooms @relation(fields: [messageId], references: [id])
+  senderId String
+  senderName String
+  content String
+  date DateTime @default(now()) @ignore
 }

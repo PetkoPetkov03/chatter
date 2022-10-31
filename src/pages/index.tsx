@@ -1,15 +1,13 @@
 import React from 'react';
 import { userState } from '../libs/atoms';
 import { useRecoilValue } from 'recoil';
+import HomeComponent from './Components/HomeComponent';
 
 const Home = () => {
   const user = useRecoilValue(userState);
 
   return (
-    <div>
-      Home
-      Hello my dear user {user?.username}
-    </div>
+    <HomeComponent user={user} />
   )
 }
 

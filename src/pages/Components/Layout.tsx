@@ -3,7 +3,7 @@ import Header from './Header'
 
 const Layout = ({ children }: React.PropsWithChildren) => {
   return (
-    <div className='app_wrapper' >
+    <div className='h-screen w-full' >
         <Header />
         {children}
     </div>

@@ -7,8 +7,6 @@ import superjson from "superjson";
 import type { AppRouter } from "../server/router";
 import "../styles/globals.css";
 import "../styles/base.css";
-import "../styles/header.css";
-import "../styles/form.css";
 import { RecoilRoot, useRecoilState } from "recoil";
 import Layout from "./Components/Layout";
 import { userState } from "../libs/atoms";

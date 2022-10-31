@@ -37,7 +37,7 @@ const Social = () => {
   return (
     <div>
       Social
-      <input type="text" onChange={(e) => setSearhQuery(e.target.value)} />
+      <input type="search" onChange={(e) => setSearhQuery(e.target.value)} />
       <div>
         {search?.searchResults.map((query) => {
           return (

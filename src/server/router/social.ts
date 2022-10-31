@@ -398,5 +398,32 @@ export const socialRouter = createRouter()
             return {
                 message: "Report sent!",
             };
-        },
+        }
+    })
+    .query("fetchIcon", {
+        input: z.object({
+            id: z.string().cuid()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+            if(!input || typeof input.id === "undefined") {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    cause: "User",
+                    message: "No user input"
+                });
+            }
+
+            const imagePath = await ctx.prisma.user.findFirst({
+                where: {
+                    id: input.id
+                },
+                select: {
+                    icon: true
+                }
+            });
+
+            return {
+                imagePath: imagePath
+            }
+        }
     });

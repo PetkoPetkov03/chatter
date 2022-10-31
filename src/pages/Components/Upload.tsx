@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { FilePond, registerPlugin } from "react-filepond"
 import "filepond/dist/filepond.min.css"
 
@@ -44,7 +44,8 @@ const Upload = (props: UploadProps) => {
         setFileBase64String(file.getFileEncodeBase64String());
     }
 
-    const generatePictureServer = async() => {
+    const generatePictureServer = async(e: React.FormEvent) => {
+        e.preventDefault();
         const result = await fetch("/api/upload/filepondgenerate", {
             method: "POST",
             headers: {"Content-Type":"application/json"},
@@ -61,13 +62,15 @@ const Upload = (props: UploadProps) => {
             path: parsed_result.path
         });
 
-        window.location.reload();
+        location.reload();
     }
     
     return (
         <div>
-            <FilePond  allowFileEncode={true} allowMultiple={false} allowDrop={false} maxFiles={1} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
-            <button onClick={generatePictureServer}>SSSSSSSS</button>
+            <form onSubmit={(e) => generatePictureServer(e)}>
+            <FilePond allowFileEncode={true} allowMultiple={false} allowDrop={false} maxFiles={1} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
+            <button type="submit">Upload Avatar</button>
+            </form>
         </div>
     )
 }

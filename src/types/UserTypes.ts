@@ -5,7 +5,16 @@ export type User = {
     email: string,
     username: string,
     admin: boolean
-} | undefined
+} | undefined | null
+
+
+export type UserPrisma = {
+    id: string,
+    email: string,
+    username: string,
+    admin: boolean,
+    friends: string[]
+} | undefined | null
 
 export const UserSchema: z.ZodSchema<User> = z.object({
     id: z.string().cuid(),

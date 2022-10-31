@@ -11,6 +11,13 @@
     "analyze": "ANALYZE=true npm run build"
   },
   "dependencies": {
+    "@emotion/react": "^11.10.4",
+    "@emotion/styled": "^11.10.4",
+    "@fortawesome/fontawesome-svg-core": "^6.2.0",
+    "@fortawesome/free-regular-svg-icons": "^6.2.0",
+    "@fortawesome/free-solid-svg-icons": "^6.2.0",
+    "@mui/icons-material": "^5.10.9",
+    "@mui/material": "^5.10.10",
     "@next/bundle-analyzer": "^12.3.1",
     "@prisma/client": "^4.4.0",
     "@trpc/client": "^9.27.2",
@@ -22,8 +29,8 @@
     "filepond-plugin-file-encode": "^2.1.10",
     "filepond-plugin-image-exif-orientation": "^1.0.11",
     "filepond-plugin-image-preview": "^4.6.11",
-    "next": "12.3.1",
     "iron-session": "^6.2.1",
+    "next": "12.3.1",
     "octokit": "^2.0.7",
     "react": "18.2.0",
     "react-dom": "18.2.0",

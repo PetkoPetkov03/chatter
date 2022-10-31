@@ -1,6 +1,7 @@
 import { createRouter } from "./context";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod";
+import { UserPrisma } from "../../types/UserTypes";
 
 export const fetch = createRouter()
     .query("fetchUserById", {
@@ -42,7 +43,7 @@ export const fetch = createRouter()
                 });
             }
 
-            const user = await ctx.prisma.user.findFirst({
+            const user: UserPrisma = await ctx.prisma.user.findFirst({
                 where: {
                     username: {
                         startsWith: input.username
@@ -91,5 +92,42 @@ export const fetch = createRouter()
             return {
                 users: users
             }
+        }
+    })
+    .query("fetchFriends", {
+        input: z.object({
+            id: z.string().cuid()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+            if(!input) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    cause: "Input",
+                    message: "Invalid input type"
+                });
+            }
+
+            const current_user = await ctx.prisma.user.findFirst({
+                where: {
+                    id: input.id
+                },
+                select: {
+                    friends: true
+                }
+            });
+
+            const friends = await ctx.prisma.user.findMany({
+                where: {
+                    id: {
+                        in: current_user?.friends
+                    }
+                },
+                select: {
+                    id: true,
+                    username: true
+                }
+            });
+
+            return friends;
         }
     });
