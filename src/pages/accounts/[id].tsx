@@ -78,6 +78,7 @@ const Account: NextPage = (): JSX.Element => {
                 return (
                     <div key={user.id} >
                         <h1>Username: {user.username}</h1>
+                        {/* FIXME: Fix unfriend solution */}
                         <button onClick={() => unfriend(user.id)} >Unfriend</button>
                         <button onClick={() => reportAssign(user.id)} >Report</button>
                         {reportTrigger && (reportId === user.id) && typeof fetchCurrentUser?.user !== "undefined" && fetchCurrentUser.user ? <ReportComponent User={fetchCurrentUser.user} RepId={reportId} RepTrigger={reportTrigger} SetRepTrigger={setReportTrigger} /> : ""}

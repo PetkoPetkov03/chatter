@@ -1,8 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { createRouter } from "./context";
 import * as z from "zod";
-import { UserSchema } from "../../types/UserTypes";
-import type { User } from "../../types/UserTypes"
 
 export const adminActions = createRouter()
     .mutation("givePriviliges", {

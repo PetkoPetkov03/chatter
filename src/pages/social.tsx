@@ -3,6 +3,7 @@ import { userState } from '../libs/atoms';
 import { useRecoilValue } from 'recoil';
 import { trpc } from '../utils/trpc';
 import Notifications from './Components/Notifications';
+import Search from "./Components/Search"
 
 
 const Social = () => {
@@ -36,8 +37,9 @@ const Social = () => {
   // TODO integrate notification system show,accept,decline etc.
   return (
     <div>
-      Social
-      <input type="search" onChange={(e) => setSearhQuery(e.target.value)} />
+      <Search>
+        <input type="search" onChange={(e) => setSearhQuery(e.target.value)} />
+      </Search>
       <div>
         {search?.searchResults.map((query) => {
           return (

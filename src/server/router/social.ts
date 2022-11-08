@@ -1,7 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { createRouter } from "./context";
 import * as z from "zod";
-import { User } from "@prisma/client";
 import { UserSchema } from "../../types/UserTypes";
 
 export const socialRouter = createRouter()
@@ -249,20 +248,10 @@ export const socialRouter = createRouter()
             }
 
             const req_user_notifications =
-                requested_user_friends_notif.notifications.map((notif) => {
-                    if (notif !== input.curr_user_id) {
-                        return notif;
-                    }
-                    return "";
-                });
+                requested_user_friends_notif.notifications.filter((notif) => notif !== input.curr_user_id);
 
             const current_user_notifications =
-                current_user_friends_notif.notifications.map((notif) => {
-                    if (notif !== input.req_user_id) {
-                        return notif;
-                    }
-                    return "";
-                });
+                current_user_friends_notif.notifications.filter((notif) => notif !== input.req_user_id);
 
             if (!current_user_notifications) {
                 throw new TRPCError({
@@ -336,17 +325,37 @@ export const socialRouter = createRouter()
                 },
             });
 
+            const req_user_friends = await ctx.prisma.user.findFirst({
+                where: {
+                    id: input.req_user_id
+                },
+                select: {
+                    friends: true
+                }
+            });
+
+            if(!req_user_friends) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                });
+            }
+
+            const new_req_user_list: string[] = req_user_friends.friends.filter((id) => id !== input.user_id);
+
             if (!current_user_friends) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                 });
             }
 
-            const new_friend_list = current_user_friends.friends.map((id) => {
-                if (id !== input.req_user_id) {
-                    return id;
-                } else {
-                    return "";
+            const new_friend_list: string[] = current_user_friends.friends.filter((id) => id !== input.req_user_id);
+
+            await ctx.prisma.user.update({
+                where: {
+                    id: input.req_user_id
+                },
+                data: {
+                    friends: new_req_user_list
                 }
             });
 
