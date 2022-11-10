@@ -119,4 +119,53 @@ export const chatRouter = createRouter()
                 status: 202
             }
         }
+    })
+    .mutation("deleteChatroom", {
+        input: z.object({
+            currUserId: z.string().cuid(),
+            chatroomId: z.string().cuid()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+            if(!input) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    cause: "Input",
+                    message: "Wrong input type!"
+                });
+            }
+
+            const chatroom = await ctx.prisma.chatrooms.findFirst({
+                where: {
+                    id: input.chatroomId
+                },
+                select: {
+                    participants: true,
+                    adminId: true
+                }
+            });
+
+            if(!chatroom) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Coudn't find chatroom!"
+                });
+            }
+
+            if(chatroom.adminId !== input.currUserId) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Current user is not the chatrooms admin!"
+                });
+            }
+
+            await ctx.prisma.chatrooms.delete({
+                where: {
+                    id: input.chatroomId
+                }
+            });
+
+            return {
+                message: "Chatroom removed!"
+            };
+        }
     });

@@ -55,7 +55,7 @@ model Chatrooms {
 model Messages {
   id String @id @default(cuid())
   messageId String @default(cuid())
-  chatroom Chatrooms @relation(fields: [messageId], references: [id])
+  chatroom Chatrooms @relation(fields: [messageId], references: [id], onDelete: Cascade)
   senderId String
   senderName String
   content String

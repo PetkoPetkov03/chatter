@@ -12,6 +12,8 @@ const Account: NextPage = (): JSX.Element => {
     const [reportId, setReportId]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
     const [friendListIds, setFriendListIds]: [string[] | undefined , Dispatch<SetStateAction<string[] | undefined>>] = useState();
     const [reportTrigger, setReportTrigger]: [boolean, Dispatch<SetStateAction<boolean>>] = useState(false);
+    const [chatroomMessage, setChatroomMessage]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
+
     const router = useRouter();
     const { id } = router.query;
 
@@ -24,11 +26,12 @@ const Account: NextPage = (): JSX.Element => {
     });
 
     const {data: iconPath, isLoading} = trpc.useQuery(['social.fetchIcon', {id: idString}]);
-    const {data: chatrooms, isLoading: isLoadingChatrooms} = trpc.useQuery(["chat.fetchChatrooms", {id: idString}]);
+    const {data: chatrooms, isLoading: isLoadingChatrooms, refetch: chatroomRefetch} = trpc.useQuery(["chat.fetchChatrooms", {id: idString}]);
 
     const {data: fetchMultiple, isLoading: fetchMultipleIsLoading, refetch: fetchMultipleRefetch} = trpc.useQuery(["fetch.fetchMultiple" , {ids: friendListIds as string[]}]);
 
     const unfriendUser = trpc.useMutation(["social.unfriend"]);
+    const removeChatroomMutation = trpc.useMutation(["chat.deleteChatroom"]);
 
     const unfriend = async(id: string) => {
         unfriendUser.mutateAsync({user_id: idString, req_user_id: id});        
@@ -43,6 +46,12 @@ const Account: NextPage = (): JSX.Element => {
         setReportTrigger(!reportTrigger);
         setReportId(id);
     };
+
+    const removeChatroom = async(chatroomId: string) => {
+        const message = await removeChatroomMutation.mutateAsync({chatroomId: chatroomId, currUserId: idString});
+        setChatroomMessage(message.message);
+        chatroomRefetch();
+    } 
 
 
 
@@ -69,6 +78,8 @@ const Account: NextPage = (): JSX.Element => {
                     <div key={chatroom.id} >
                         <h1>{chatroom.name}</h1>
                         <button onClick={() => rerouteToChatroom(chatroom.id)}>Enter chatroom</button>
+                        {chatroom.adminId === idString ? <button onClick={() => removeChatroom(chatroom.id)}>Remove Chatroom</button> : null}
+                        {chatroomMessage}
                     </div>
                 );
             })}
