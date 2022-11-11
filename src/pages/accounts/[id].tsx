@@ -8,11 +8,13 @@ import Upload from '../Components/Upload';
 import Image from 'next/image';
 
 const Account: NextPage = (): JSX.Element => {
+    const [globalMessage, setGlobalMessage]: [string | undefined, Dispatch<SetStateAction<string| undefined>>] = useState();
     const [currentUserAvailable, setCurrentUserAvailable]: [boolean, Dispatch<SetStateAction<boolean>>] =  useState(false);
     const [reportId, setReportId]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
     const [friendListIds, setFriendListIds]: [string[] | undefined , Dispatch<SetStateAction<string[] | undefined>>] = useState();
     const [reportTrigger, setReportTrigger]: [boolean, Dispatch<SetStateAction<boolean>>] = useState(false);
     const [chatroomMessage, setChatroomMessage]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
+    const [newAdminId, setNewAdminId]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
 
     const router = useRouter();
     const { id } = router.query;
@@ -32,6 +34,7 @@ const Account: NextPage = (): JSX.Element => {
 
     const unfriendUser = trpc.useMutation(["social.unfriend"]);
     const removeChatroomMutation = trpc.useMutation(["chat.deleteChatroom"]);
+    const leaveChatroomMutation = trpc.useMutation(["chat.leaveChatroom"]);
 
     const unfriend = async(id: string) => {
         unfriendUser.mutateAsync({user_id: idString, req_user_id: id});        
@@ -52,6 +55,12 @@ const Account: NextPage = (): JSX.Element => {
         setChatroomMessage(message.message);
         chatroomRefetch();
     } 
+
+    const leaveTheChatroom = async(chatroomId: string) => {
+        const message = await leaveChatroomMutation.mutateAsync({ chatroomId: chatroomId, currentUserId: idString, futureAdminId: typeof newAdminId !== "string" ? null : newAdminId });
+        setGlobalMessage(message.message);
+        chatroomRefetch();
+    }
 
 
 
@@ -78,6 +87,7 @@ const Account: NextPage = (): JSX.Element => {
                     <div key={chatroom.id} >
                         <h1>{chatroom.name}</h1>
                         <button onClick={() => rerouteToChatroom(chatroom.id)}>Enter chatroom</button>
+                        <button onClick={() => leaveTheChatroom(chatroom.id)}>Leave Chatroom</button>
                         {chatroom.adminId === idString ? <button onClick={() => removeChatroom(chatroom.id)}>Remove Chatroom</button> : null}
                         {chatroomMessage}
                     </div>

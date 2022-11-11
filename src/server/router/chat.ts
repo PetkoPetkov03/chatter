@@ -12,7 +12,7 @@ export const chatRouter = createRouter()
             listOfUsers: z.string().cuid().array()
         }).nullish(),
         async resolve({ ctx, input }) {
-            if(!input) {
+            if (!input) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "Input",
@@ -22,9 +22,9 @@ export const chatRouter = createRouter()
 
             await ctx.prisma.chatrooms.create({
                 data: {
-                 adminId: input.adminId,
-                 name: input.name,
-                 participants: input.listOfUsers,
+                    adminId: input.adminId,
+                    name: input.name,
+                    participants: input.listOfUsers,
                 }
             });
 
@@ -38,8 +38,8 @@ export const chatRouter = createRouter()
         input: z.object({
             id: z.string()
         }).nullish(),
-        async resolve({ctx, input}) {
-            if(!input) {
+        async resolve({ ctx, input }) {
+            if (!input) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "Input",
@@ -65,7 +65,7 @@ export const chatRouter = createRouter()
             id: z.string().cuid()
         }).nullish(),
         async resolve({ ctx, input }) {
-            if(!input) {
+            if (!input) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "Input",
@@ -96,7 +96,7 @@ export const chatRouter = createRouter()
             content: z.string()
         }).nullish(),
         async resolve({ ctx, input }) {
-            if(!input) {
+            if (!input) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "Input",
@@ -126,7 +126,7 @@ export const chatRouter = createRouter()
             chatroomId: z.string().cuid()
         }).nullish(),
         async resolve({ ctx, input }) {
-            if(!input) {
+            if (!input) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     cause: "Input",
@@ -144,14 +144,14 @@ export const chatRouter = createRouter()
                 }
             });
 
-            if(!chatroom) {
+            if (!chatroom) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: "Coudn't find chatroom!"
                 });
             }
 
-            if(chatroom.adminId !== input.currUserId) {
+            if (chatroom.adminId !== input.currUserId) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: "Current user is not the chatrooms admin!"
@@ -167,5 +167,72 @@ export const chatRouter = createRouter()
             return {
                 message: "Chatroom removed!"
             };
+        }
+    })
+    .mutation("leaveChatroom", {
+        input: z.object({
+            chatroomId: z.string().cuid(),
+            currentUserId: z.string().cuid(),
+            futureAdminId: z.string().cuid().nullable()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+            if (!input) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    cause: "Input",
+                    message: "Wrong input type!"
+                });
+            }
+
+            const participants_and_admins = await ctx.prisma.chatrooms.findFirstOrThrow({
+                where: {
+                    id: input.chatroomId
+                },
+                select: {
+                    participants: true,
+                    adminId: true
+                }
+            });
+
+            let adminId = participants_and_admins.adminId;
+
+            const newListOfParticipants = participants_and_admins.participants.filter((participant) => participant !== input.currentUserId);
+
+            if(!newListOfParticipants || newListOfParticipants.length === 0) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Unable to reconstruct participants list!"
+                });
+            }
+
+            await ctx.prisma.chatrooms.update({
+                where: {
+                    id: input.chatroomId
+                },
+                data: {
+                    participants: newListOfParticipants
+                }
+            });
+
+            if(adminId === input.currentUserId){
+                if(typeof input.futureAdminId !== "string"){
+                    adminId = newListOfParticipants[0] as string;
+                }else{
+                    adminId = input.futureAdminId;
+                }
+
+                await ctx.prisma.chatrooms.update({
+                    where: {
+                        id: input.chatroomId
+                    },
+                    data: {
+                        adminId: adminId
+                    }
+                });
+            }
+
+            return {
+                message: "You left the chatroom!"
+            }
         }
     });

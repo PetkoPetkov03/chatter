@@ -27,7 +27,7 @@ model User {
 model Reports {
   id String @id @default(cuid())
   userId String
-  user User? @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   reportType String
   submiterId String
   message String
@@ -37,7 +37,7 @@ model Reports {
 model Restrictions {
   id String @id @default(cuid())
   userId String
-  user User? @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   restrictions String @default("Ban")
   reason String
   duration DateTime @default(now())
