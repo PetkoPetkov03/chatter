@@ -1,7 +1,9 @@
-import { TRPCError } from "@trpc/server";
+
 import { createRouter } from "./context";
 import * as z from "zod";
 import { UserSchema } from "../../types/UserTypes";
+import { TRPCError } from "@trpc/server";
+import { ThrowTRPCAuthErrorHook, ThrowTRPCInputErrorHook } from "./inputThrow";
 
 export const socialRouter = createRouter()
     .query("searchEngine", {
@@ -22,19 +24,11 @@ export const socialRouter = createRouter()
 
         async resolve({ input, ctx }) {
             if (!input?.searchQuery) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "No search query",
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             if (!input.user) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "Pass a user",
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             if (
@@ -43,11 +37,7 @@ export const socialRouter = createRouter()
                 !input.user.email ||
                 typeof input.user.admin !== "boolean"
             ) {
-                throw new TRPCError({
-                    code: "INTERNAL_SERVER_ERROR",
-                    cause: "Authorization",
-                    message: "Cookie Error",
-                });
+                throw ThrowTRPCAuthErrorHook();
             }
 
             const users = await ctx.prisma.user.findMany({
@@ -57,12 +47,13 @@ export const socialRouter = createRouter()
                             username: {
                                 startsWith: input.searchQuery,
                                 not: input.user.username,
+                                mode: "insensitive"
                             },
                         },
 
                         {
                             NOT: [
-                               { notifications: {
+                               { friendRequests: {
                                     has: input.user.id,
                                 }},
                                 {
@@ -95,35 +86,27 @@ export const socialRouter = createRouter()
 
         async resolve({ input, ctx }) {
             if (!input) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "no valid parameters",
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             if (
                 typeof input.current_user_id !== "string" ||
                 typeof input.requested_user_id !== "string"
             ) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "Arguments not a valid type!",
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
-            const requested_user_notifications = await ctx.prisma.user.findFirst({
+            const requested_user_friendRequests = await ctx.prisma.user.findFirst({
                 where: {
                     id: input.requested_user_id,
                 },
 
                 select: {
-                    notifications: true,
+                    friendRequests: true,
                 },
             });
 
-            if (!requested_user_notifications?.notifications) {
+            if (!requested_user_friendRequests?.friendRequests) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     cause: "Prisma",
@@ -131,19 +114,19 @@ export const socialRouter = createRouter()
                 });
             }
 
-            const current_user_notifications = await ctx.prisma.user.findFirst({
+            const current_user_friendRequests = await ctx.prisma.user.findFirst({
                 where: {
                     id: input.current_user_id
                 },
 
                 select: {
-                    notifications: true
+                    friendRequests: true
                 }
             });
 
-            if(current_user_notifications?.notifications.includes(input.requested_user_id)) {
+            if(current_user_friendRequests?.friendRequests.includes(input.requested_user_id)) {
                 return {
-                    message: "User is already in your notifications!"
+                    message: "User is already in your friendRequests!"
                 }
             }
 
@@ -152,9 +135,9 @@ export const socialRouter = createRouter()
                     id: input.requested_user_id,
                 },
                 data: {
-                    notifications: [
+                    friendRequests: [
                         input.current_user_id,
-                        ...requested_user_notifications.notifications,
+                        ...requested_user_friendRequests.friendRequests,
                     ],
                 },
             });
@@ -165,7 +148,7 @@ export const socialRouter = createRouter()
             };
         },
     })
-    .query("fetchNotifications", {
+    .query("fetchfriendRequests", {
         input: z
             .object({
                 id: z.string().cuid().nullish(),
@@ -174,23 +157,19 @@ export const socialRouter = createRouter()
 
         async resolve({ input, ctx }) {
             if (typeof input?.id !== "string") {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "Type of Value not valid",
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
-            const notifications = await ctx.prisma.user.findMany({
+            const friendRequests = await ctx.prisma.user.findMany({
                 where: {
                     id: input.id,
                 },
                 select: {
-                    notifications: true,
+                    friendRequests: true,
                 },
             });
 
-            return notifications[0];
+            return friendRequests[0];
         },
     })
     .mutation("acceptFriendRequest", {
@@ -206,11 +185,7 @@ export const socialRouter = createRouter()
                 typeof input?.curr_user_id !== "string" ||
                 typeof input.req_user_id !== "string"
             ) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "Type of Value not valid",
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             const current_user_friends_notif = await ctx.prisma.user.findFirst({
@@ -218,7 +193,7 @@ export const socialRouter = createRouter()
                     id: input.curr_user_id,
                 },
                 select: {
-                    notifications: true,
+                    friendRequests: true,
                     friends: true,
                 },
             });
@@ -228,7 +203,7 @@ export const socialRouter = createRouter()
                     id: input.req_user_id,
                 },
                 select: {
-                    notifications: true,
+                    friendRequests: true,
                     friends: true,
                 },
             });
@@ -247,20 +222,20 @@ export const socialRouter = createRouter()
                 });
             }
 
-            const req_user_notifications =
-                requested_user_friends_notif.notifications.filter((notif) => notif !== input.curr_user_id);
+            const req_user_friendRequests =
+                requested_user_friends_notif.friendRequests.filter((notif) => notif !== input.curr_user_id);
 
-            const current_user_notifications =
-                current_user_friends_notif.notifications.filter((notif) => notif !== input.req_user_id);
+            const current_user_friendRequests =
+                current_user_friends_notif.friendRequests.filter((notif) => notif !== input.req_user_id);
 
-            if (!current_user_notifications) {
+            if (!current_user_friendRequests) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     cause: "Data missing",
                 });
             }
 
-            if (!req_user_notifications) {
+            if (!req_user_friendRequests) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     cause: "Data missing",
@@ -273,7 +248,7 @@ export const socialRouter = createRouter()
                 },
                 data: {
                     friends: [input.req_user_id, ...current_user_friends_notif.friends],
-                    notifications: current_user_notifications,
+                    friendRequests: current_user_friendRequests,
                 },
             });
 
@@ -286,7 +261,7 @@ export const socialRouter = createRouter()
                         input.curr_user_id,
                         ...requested_user_friends_notif.friends,
                     ],
-                    notifications: req_user_notifications,
+                    friendRequests: req_user_friendRequests,
                 },
             });
 
@@ -309,11 +284,7 @@ export const socialRouter = createRouter()
                 typeof input?.req_user_id !== "string" ||
                 typeof input.user_id !== "string"
             ) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "Type of Value not valid",
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             const current_user_friends = await ctx.prisma.user.findFirst({
@@ -387,11 +358,7 @@ export const socialRouter = createRouter()
         async resolve({ input, ctx }) {
             // TODO Introduce Report Logic
             if (typeof input?.description !== "string" || typeof input.id !== "string" || typeof input.repType !== "string" || typeof input.user?.id !== "string") {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "Types not matched",
-                    message: "Type of Value not valid",
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             
@@ -415,11 +382,7 @@ export const socialRouter = createRouter()
         }).nullish(),
         async resolve({ ctx, input }) {
             if(!input || typeof input.id === "undefined") {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "No user input"
-                });
+                throw ThrowTRPCInputErrorHook()
             }
 
             const imagePath = await ctx.prisma.user.findFirst({

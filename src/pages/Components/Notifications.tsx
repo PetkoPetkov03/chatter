@@ -15,9 +15,9 @@ const Notifications = (props: NotificationProps) => {
   const [messageId, setMessageId]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
   const [message, setMessage]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
 
-  const [notificationsIds, setNotificationsIds]: [string [], Dispatch<SetStateAction<string[]>>] = useState([""]);
-  const {data: fetchNotifIds, isLoading: notifIsLoading, refetch: refetchNotifs} = trpc.useQuery(["social.fetchNotifications", {id: user?.id}]);
-  const {data: fetchNotifInfo, isLoading: notifIdsIsLoading} = trpc.useQuery(["fetch.fetchMultiple", {ids: notificationsIds}]);
+  const [friendRequestsIds, setfriendRequestsIds]: [string [], Dispatch<SetStateAction<string[]>>] = useState([""]);
+  const {data: fetchNotifIds, isLoading: notifIsLoading, refetch: refetchNotifs} = trpc.useQuery(["social.fetchfriendRequests", {id: user?.id}]);
+  const {data: fetchNotifInfo, isLoading: notifIdsIsLoading} = trpc.useQuery(["fetch.fetchMultiple", {ids: friendRequestsIds}]);
 
   const acceptFriendRequestMutation = trpc.useMutation("social.acceptFriendRequest");
 
@@ -34,11 +34,11 @@ const Notifications = (props: NotificationProps) => {
     if(!fetchNotifIds) {
       return;
     }
-    setNotificationsIds(fetchNotifIds.notifications);
+    setfriendRequestsIds(fetchNotifIds.friendRequests);
   }, [fetchNotifIds]);
   return (
     <div>
-      Notifications
+      friendRequests
       {fetchNotifInfo?.users.map(notif => {
         return (
           <div key={notif.id}>
@@ -53,4 +53,4 @@ const Notifications = (props: NotificationProps) => {
   )
 }
 
-export default Notifications
+export default Notifications;

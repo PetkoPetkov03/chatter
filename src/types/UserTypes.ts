@@ -1,4 +1,5 @@
 import * as z from "zod";
+import type { Messages } from "@prisma/client";
 
 export type User = {
     id: string,
@@ -25,5 +26,16 @@ export const UserSchema: z.ZodSchema<User> = z.object({
     chatrooms: z.string().array(),
     friends: z.string().array(),
     icon: z.string(),
-    notifications: z.string().array()
+    friendRequests: z.string().array()
 });
+
+export interface MObject {
+    submiter: {
+        id: string,
+        messages: Messages[]
+    },
+    reported: {
+        id: string,
+        messages: Messages[]
+    }
+}

@@ -2,6 +2,7 @@ import { createRouter } from "./context";
 import * as z from "zod";
 import { TRPCError } from "@trpc/server";
 import * as bcrypt from "bcrypt"
+import { ThrowTRPCInputErrorHook } from "./inputThrow";
 
 export const authRouter = createRouter()
     .mutation("register", {
@@ -15,10 +16,7 @@ export const authRouter = createRouter()
         async resolve({ input, ctx }) {
 
             if(!input?.email || !input?.username || !input?.password || !input.cpassword) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    message: "required parameter empty!"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             const userExistsPrisma = await ctx.prisma.user.findFirst({
@@ -74,11 +72,7 @@ export const authRouter = createRouter()
 
         async resolve({ input, ctx }) {
             if(!input?.email || !input?.password) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "Input Error"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             const userExistsPrisma = await ctx.prisma.user.findFirst({

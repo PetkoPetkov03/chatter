@@ -6,7 +6,7 @@ CREATE TABLE "User" (
     "admin" BOOLEAN NOT NULL DEFAULT false,
     "friends" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "chatrooms" TEXT[] DEFAULT ARRAY[]::TEXT[],
-    "notifications" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "friendRequests" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "password" TEXT NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")

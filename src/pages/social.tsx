@@ -2,8 +2,8 @@ import React, { Dispatch, SetStateAction, useState } from 'react'
 import { userState } from '../libs/atoms';
 import { useRecoilValue } from 'recoil';
 import { trpc } from '../utils/trpc';
-import Notifications from './Components/Notifications';
 import Search from "./Components/Search"
+import Notifications from './Components/Notifications';
 
 
 const Social = () => {
@@ -14,9 +14,9 @@ const Social = () => {
 
   const [searchQuery, setSearhQuery]: [string, Dispatch<SetStateAction<string>>] = useState("");
 
-  const {data: notifications, isLoading: isLoadingNotifications} = trpc.useQuery(["fetch.fetchUser", {username: user?.username}]);
+  const {data: friendRequests, isLoading: isLoadingfriendRequests} = trpc.useQuery(["fetch.fetchUser", {username: user?.username}]);
 
-  const {data: search, isLoading: isLoadingSearch, refetch: searchRefetch} = trpc.useQuery(["social.searchEngine", { searchQuery: searchQuery, user: user, current_user_friends: notifications?.users?.friends }]);
+  const {data: search, isLoading: isLoadingSearch, refetch: searchRefetch} = trpc.useQuery(["social.searchEngine", { searchQuery: searchQuery, user: user, current_user_friends: friendRequests?.users?.friends }]);
 
   const sendRequestMutation = trpc.useMutation(["social.sendFriendRequest"], {
     onSuccess: () => {
@@ -34,7 +34,6 @@ const Social = () => {
     setResponseMessage(response.message);
   }
 
-  // TODO integrate notification system show,accept,decline etc.
   return (
     <div>
       <Search>
@@ -45,7 +44,7 @@ const Social = () => {
           return (
             <div key={query.id} className="queryResult">
               <h1>{query.username}</h1>
-              {!user ? "" : <div>
+              {!user ? null : <div>
               <button onClick={() => friendRequest(query.id, user.id)} >Send Friend Request!</button>
               {responseMessage}
                 </div>}
@@ -55,7 +54,7 @@ const Social = () => {
         })}
       </div>
 
-      {user ? <Notifications reqMutation={searchRefetch} user={user}/> : ""}
+      {user ? <Notifications reqMutation={searchRefetch} user={user}/> : null}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { createRouter } from "./context";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod";
-import type { Chatrooms } from "@prisma/client";
+import { ThrowTRPCAuthErrorHook, ThrowTRPCInputErrorHook, ThrowTRPCInternalErrorHook } from "./inputThrow";
 
 
 export const chatRouter = createRouter()
@@ -13,11 +13,7 @@ export const chatRouter = createRouter()
         }).nullish(),
         async resolve({ ctx, input }) {
             if (!input) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "Input",
-                    message: "Wrong input type!"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             await ctx.prisma.chatrooms.create({
@@ -40,11 +36,7 @@ export const chatRouter = createRouter()
         }).nullish(),
         async resolve({ ctx, input }) {
             if (!input) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "Input",
-                    message: "Wrong input type!"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             const chatrooms = await ctx.prisma.chatrooms.findMany({
@@ -66,11 +58,7 @@ export const chatRouter = createRouter()
         }).nullish(),
         async resolve({ ctx, input }) {
             if (!input) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "Input",
-                    message: "Wrong input type!"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             const messages = await ctx.prisma.chatrooms.findFirst({
@@ -97,11 +85,7 @@ export const chatRouter = createRouter()
         }).nullish(),
         async resolve({ ctx, input }) {
             if (!input) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "Input",
-                    message: "Wrong input type!"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
             await ctx.prisma.messages.create({
                 data: {
@@ -127,11 +111,7 @@ export const chatRouter = createRouter()
         }).nullish(),
         async resolve({ ctx, input }) {
             if (!input) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "Input",
-                    message: "Wrong input type!"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             const chatroom = await ctx.prisma.chatrooms.findFirst({
@@ -152,10 +132,7 @@ export const chatRouter = createRouter()
             }
 
             if (chatroom.adminId !== input.currUserId) {
-                throw new TRPCError({
-                    code: "INTERNAL_SERVER_ERROR",
-                    message: "Current user is not the chatrooms admin!"
-                });
+                throw ThrowTRPCAuthErrorHook();
             }
 
             await ctx.prisma.chatrooms.delete({
@@ -177,11 +154,7 @@ export const chatRouter = createRouter()
         }).nullish(),
         async resolve({ ctx, input }) {
             if (!input) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "Input",
-                    message: "Wrong input type!"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             const participants_and_admins = await ctx.prisma.chatrooms.findFirstOrThrow({
@@ -233,6 +206,56 @@ export const chatRouter = createRouter()
 
             return {
                 message: "You left the chatroom!"
+            }
+        }
+    })
+    .mutation("addParticipants", {
+        input: z.object({
+            user_id: z.string().cuid(),
+            chatroom_id: z.string().cuid(),
+            list_of_new_participants: z.string().cuid().array()
+        }).nullish(),
+        async resolve({ input, ctx }) {
+            if(!input) {
+                throw ThrowTRPCInputErrorHook()
+            }
+
+            const User = await ctx.prisma.user.findFirst({
+                where: {
+                    id: input.user_id
+                }
+            });
+
+            const Chatroom = await ctx.prisma.chatrooms.findFirst({
+                where: {
+                    id: input.chatroom_id
+                }
+            });
+
+            if(!User) {
+                throw ThrowTRPCInternalErrorHook();
+            }
+
+            if(!Chatroom) {
+                throw ThrowTRPCInternalErrorHook();
+            }
+
+            const new_list_of_participants: string[] = Chatroom.participants;
+
+            input.list_of_new_participants.forEach((participant) => new_list_of_participants.push(participant));
+
+            await ctx.prisma.chatrooms.update({
+                where: {
+                    id: Chatroom.id
+                },
+                data: {
+                    participants: new_list_of_participants
+                }
+            });
+
+            return {
+                username: User.username,
+                listofparticipants: input.list_of_new_participants
             }
         }
     });

@@ -1,29 +1,18 @@
-import { TRPCError } from "@trpc/server";
+
 import { createRouter } from "./context";
 import * as z from "zod";
+import { ThrowTRPCInputErrorHook } from "./inputThrow";
 
 export const adminActions = createRouter()
     .mutation("givePriviliges", {
         input: z.object({
-            id: z.string().cuid({ message: "invalid id" }).nullish(),
-            currentPrivilages: z.boolean().nullish()
+            id: z.string().cuid({ message: "invalid id" }),
+            currentPrivilages: z.boolean()
         }).nullish(),
 
         async resolve({ input, ctx }) {
             if (!input) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "Missing input"
-                });
-            }
-
-            if (typeof input.id !== "string" || typeof input.currentPrivilages !== "boolean") {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "Missing directives"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             if (input.currentPrivilages === true) {
@@ -53,11 +42,7 @@ export const adminActions = createRouter()
         }).nullish(),
         async resolve({ input }) {
             if (typeof input?.password === "undefined") {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "Missing input"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
 
             const adminPassword = process.env.ADMIN_PASS as string;
@@ -82,11 +67,7 @@ export const adminActions = createRouter()
         }).nullish(),
         async resolve({ ctx, input }) {
             if (typeof input?.user_STATUS !== "boolean") {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "User",
-                    message: "Types do not match"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
             
 

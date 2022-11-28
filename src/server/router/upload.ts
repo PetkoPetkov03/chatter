@@ -1,6 +1,7 @@
-import { TRPCError } from "@trpc/server";
+
 import { z } from "zod";
 import { createRouter } from "./context";
+import { ThrowTRPCInputErrorHook } from "./inputThrow";
 
 export const uploadRouter = createRouter()
     .mutation("icon", {
@@ -11,11 +12,7 @@ export const uploadRouter = createRouter()
 
         async resolve({ input, ctx }) {
             if(!input) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    cause: "input error",
-                    message:" Invalid input"
-                });
+                throw ThrowTRPCInputErrorHook();
             }
             await ctx.prisma.user.update({
                 where: {
