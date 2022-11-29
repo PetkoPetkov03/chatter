@@ -87,6 +87,44 @@ export const chatRouter = createRouter()
             if (!input) {
                 throw ThrowTRPCInputErrorHook();
             }
+
+            if(input.content[0] === "!" && input.content[1] === "@") {
+                const messagePing = input.content.slice(2, input.content.length).split(" ");
+
+                const User = await ctx.prisma.user.findFirst({
+                    where: {
+                        username: messagePing[0]
+                    },
+                    select: {
+                        id: true
+                    }
+                });
+
+                const SenderUser = await ctx.prisma.user.findFirst({
+                    where: {
+                        id: input.senderId
+                    },
+                    select: {
+                        username: true
+                    }
+                });
+
+                if(!User) {
+                    throw ThrowTRPCInternalErrorHook();
+                }
+
+                if(!SenderUser) {
+                    throw ThrowTRPCInternalErrorHook();
+                }
+
+                await ctx.prisma.notification.create({
+                    data: {
+                        userId: User.id,
+                        contend: `${SenderUser.username}: ${input.content}`,
+                    }
+                });
+            }
+
             await ctx.prisma.messages.create({
                 data: {
                     content: input.content,

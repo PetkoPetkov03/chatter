@@ -30,6 +30,7 @@ model Notification {
   userId String
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   contend String
+  seen Boolean @default(false)
 }
 
 model Reports {

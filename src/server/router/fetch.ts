@@ -160,4 +160,28 @@ export const fetch = createRouter()
                 messages: MessagesObj
             }
         }
+    })
+    .query("fetchNotifications", {
+        input: z.object({
+            id: z.string().cuid()
+        }).nullish(),
+        async resolve({ input, ctx }) {
+
+            if(!input) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            const notifications = await ctx.prisma.user.findFirst({
+                where: {
+                    id: input.id
+                },
+                select: {
+                    notifications: true
+                }
+            });
+
+            return {
+                notifications: notifications?.notifications,
+            }
+        }
     });

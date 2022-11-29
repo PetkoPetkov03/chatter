@@ -3,7 +3,7 @@ import { userState } from '../libs/atoms';
 import { useRecoilValue } from 'recoil';
 import { trpc } from '../utils/trpc';
 import Search from "./Components/Search"
-import Notifications from './Components/Notifications';
+import FriendRequests from './Components/FriendRequests';
 
 
 const Social = () => {
@@ -54,7 +54,7 @@ const Social = () => {
         })}
       </div>
 
-      {user ? <Notifications reqMutation={searchRefetch} user={user}/> : null}
+      {user ? <FriendRequests reqMutation={searchRefetch} user={user}/> : null}
     </div>
   )
 }
