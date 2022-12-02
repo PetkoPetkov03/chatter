@@ -19,10 +19,26 @@ const Header = () => {
 
   const user = useRecoilValue(userState);
 
-  const {data: notifications, isLoading: isLoadingNotifications} = trpc.useQuery(["fetch.fetchNotifications", user ? {id: user.id} : {id: ""}]);
+  const {data: notifications, isLoading: isLoadingNotifications, refetch: refetchNotifications} = trpc.useQuery(["fetch.fetchNotifications", user ? {id: user.id} : {id: ""}]);
+  const notificationMutation = trpc.useMutation(["fetch.setNotificationsToSeen"]);
+  const removeNotificationMutation = trpc.useMutation(["fetch.removeNotification"]);
 
   const expandNotifications = (): void => {
+    if(expandNotificationsState === false) {
+      if(typeof notifications?.notifications !== "undefined") {
+        notificationMutation.mutateAsync({notifications: notifications?.notifications});
+      }
+    }
     setExpandNotificationsState(!expandNotificationsState);
+    
+  }
+
+  const removeMutationHook = async(id: string) => {
+    await removeNotificationMutation.mutateAsync({
+      id: id
+    });
+
+    refetchNotifications();
   }
 
   return (
@@ -38,6 +54,7 @@ const Header = () => {
               return(
                 <div key={notification.id}>
                   {notification.contend}
+                  <button onClick={() => removeMutationHook(notification.id)} >X</button>
                 </div>
               );
             }) : null}

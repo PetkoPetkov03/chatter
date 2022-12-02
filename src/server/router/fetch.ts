@@ -14,7 +14,7 @@ export const fetch = createRouter()
         }).nullish(),
 
         async resolve({ input, ctx }) {
-            if(!input){
+            if (!input) {
                 throw ThrowTRPCInputErrorHook();
             }
 
@@ -34,8 +34,8 @@ export const fetch = createRouter()
             username: z.string().nullish()
         }).nullish(),
 
-        async resolve({ input, ctx}) {
-            if(!input?.username) {
+        async resolve({ input, ctx }) {
+            if (!input?.username) {
                 throw ThrowTRPCInputErrorHook();
             }
 
@@ -52,17 +52,17 @@ export const fetch = createRouter()
             };
         }
     })
-    .query("fetchMultiple" , {
+    .query("fetchMultiple", {
         input: z.object({
             ids: z.string().array().nullish()
         }).nullish(),
 
         async resolve({ input, ctx }) {
-            if(!input) {
+            if (!input) {
                 throw ThrowTRPCInputErrorHook();
             }
 
-            if(!input.ids) {
+            if (!input.ids) {
                 throw ThrowTRPCInputErrorHook();
             }
 
@@ -88,7 +88,7 @@ export const fetch = createRouter()
             id: z.string().cuid()
         }).nullish(),
         async resolve({ ctx, input }) {
-            if(!input) {
+            if (!input) {
                 throw ThrowTRPCInputErrorHook();
             }
 
@@ -124,11 +124,11 @@ export const fetch = createRouter()
         }).nullish(),
         async resolve({ ctx, input }) {
 
-            if(!input) {
+            if (!input) {
                 throw ThrowTRPCInputErrorHook();
             }
 
-            if(typeof input.user?.admin !== "boolean" && input.user?.admin !== true)  {
+            if (typeof input.user?.admin !== "boolean" && input.user?.admin !== true) {
                 throw ThrowTRPCAuthErrorHook();
             }
 
@@ -143,7 +143,7 @@ export const fetch = createRouter()
                     senderId: input.rid
                 }
             });
-            
+
             const MessagesObj: MObject = {
                 submiter: {
                     id: input.sid,
@@ -167,7 +167,7 @@ export const fetch = createRouter()
         }).nullish(),
         async resolve({ input, ctx }) {
 
-            if(!input) {
+            if (!input) {
                 throw ThrowTRPCInputErrorHook();
             }
 
@@ -182,6 +182,57 @@ export const fetch = createRouter()
 
             return {
                 notifications: notifications?.notifications,
+            }
+        }
+    })
+    .mutation("setNotificationsToSeen", {
+        input: z.object({
+            notifications: z.object({
+                id: z.string(),
+                userId: z.string(),
+                user: z.any(),
+                contend: z.string(),
+                seen: z.boolean()
+            }).array()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+            if(!input) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            await ctx.prisma.notification.updateMany({
+                where: {
+                    id: {
+                        in: input.notifications.map((notification) => {return notification.id})
+                    }
+                },
+                data: {
+                    seen: true
+                }
+            });
+
+            return {
+                code: 200
+            }
+        }
+    })
+    .mutation("removeNotification", {
+        input: z.object({
+            id: z.string()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+            if(!input) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            await ctx.prisma.notification.delete({
+                where: {
+                    id: input.id
+                }
+            });
+
+            return {
+                code: 200
             }
         }
     });
