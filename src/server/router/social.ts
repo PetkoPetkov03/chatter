@@ -4,6 +4,7 @@ import * as z from "zod";
 import { UserSchema } from "../../types/UserTypes";
 import { TRPCError } from "@trpc/server";
 import { ThrowTRPCAuthErrorHook, ThrowTRPCInputErrorHook } from "./inputThrow";
+import { Sql } from "@prisma/client/runtime";
 
 export const socialRouter = createRouter()
     .query("searchEngine", {
@@ -396,6 +397,71 @@ export const socialRouter = createRouter()
 
             return {
                 imagePath: imagePath
+            }
+        }
+    })
+    .mutation("ignoreFriendRequest", {
+        input: z.object({
+            id: z.string().cuid(),
+            request:z.string().cuid()
+        }).nullish(),
+        async resolve({ input, ctx }) {
+            if(!input) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            const {id, request} = input;
+
+            const friendRequests = await ctx.prisma.user.findFirst({
+                where: {
+                    id: id
+                },
+                select: {
+                    friendRequests: true
+                }
+            });
+
+            await ctx.prisma.user.update({
+                where: {
+                    id: id
+                },
+                data: {
+                    friendRequests: friendRequests?.friendRequests.filter((id) => id !== request)
+                }
+            });
+
+            return {
+                status: 200
+            }
+        }
+    })
+    .mutation("createPost", {
+        input: z.object({
+            id: z.string().cuid().nullish(),
+            title: z.string(),
+            description: z.string(),
+            image: z.string().array()
+        }).nullish(),
+        async resolve({ input, ctx }) {
+            if(!input || !input.id) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            await ctx.prisma.posts.create({
+                data: {
+                    title: input.title,
+                    description: input.description,
+                    image: input.image,
+                    author: {
+                        connect: {
+                            id: input.id
+                        }
+                    }
+                }
+            });
+
+            return {
+                status: 201
             }
         }
     });

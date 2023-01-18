@@ -19,10 +19,13 @@ model User {
   notifications Notification[]
   friendRequests String[] @default([])
   priviligesStatus Restrictions[]
-  icon String @default("/public/images/base.png")
+  icon String @default("/images/base.png")
   reports Reports[]
   chatrooms String[]
   password String
+  posts Posts[]
+  comments Comments[]
+  replies Replies[]
 }
 
 model Notification {
@@ -58,7 +61,7 @@ model Chatrooms {
   name String @unique
   messages Messages[]
   participants String[]
-  date DateTime @default(now()) @ignore
+  date DateTime @default(now())
 }
 
 model Messages {
@@ -68,5 +71,36 @@ model Messages {
   senderId String
   senderName String
   content String
-  date DateTime @default(now()) @ignore
+  date DateTime @default(now())
+}
+
+model Posts {
+  id String @id @default(cuid())
+  title String
+  description String
+  image String[]
+  date DateTime @default(now())
+  author User @relation(fields: [id], references: [id], onDelete: Cascade)
+  comments Comments[]
+}
+
+model Comments {
+  id String @id @default(cuid())
+  post Posts @relation(fields: [id], references: [id], onDelete: Cascade)
+  author User @relation(fields: [id], references: [id], map: "author", onDelete: Cascade)
+  content String
+  replies Replies[]
+  likes BigInt @default(0)
+  dislikes BigInt @default(0)
+  date DateTime @default(now())
+}
+
+model Replies {
+  id String @id @default(cuid())
+  author User @relation(fields: [id], references: [id])
+  comment Comments @relation(fields: [id], references: [id], map: "comment")
+  content String
+  likes BigInt @default(0)
+  dislike BigInt @default(0)
+  date DateTime @default(now())
 }

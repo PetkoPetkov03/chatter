@@ -69,7 +69,7 @@ const Upload = (props: UploadProps) => {
         <div>
             <form onSubmit={(e) => generatePictureServer(e)}>
             <FilePond allowFileEncode={true} allowMultiple={false} allowDrop={false} maxFiles={1} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
-            <button type="submit">Upload Avatar</button>
+            <button type="submit">Upload Picture</button>
             </form>
         </div>
     )

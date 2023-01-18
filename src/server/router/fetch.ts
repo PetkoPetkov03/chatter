@@ -5,7 +5,6 @@ import { MObject, UserPrisma, UserSchema } from "../../types/UserTypes";
 import { Messages } from "@prisma/client";
 import { ThrowTRPCInputErrorHook, ThrowTRPCAuthErrorHook } from "./inputThrow";
 
-// FIXME: Rework privilage check
 
 export const fetch = createRouter()
     .query("fetchUserById", {

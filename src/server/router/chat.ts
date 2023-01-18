@@ -2,7 +2,9 @@ import { createRouter } from "./context";
 import { TRPCError } from "@trpc/server";
 import * as z from "zod";
 import { ThrowTRPCAuthErrorHook, ThrowTRPCInputErrorHook, ThrowTRPCInternalErrorHook } from "./inputThrow";
+import { EventEmitter } from "events";
 
+const ee = new EventEmitter();
 
 export const chatRouter = createRouter()
     .mutation("createChatRoom", {
@@ -137,6 +139,8 @@ export const chatRouter = createRouter()
                     senderName: input.senderName
                 }
             });
+
+            
             return {
                 status: 202
             }

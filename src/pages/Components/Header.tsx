@@ -12,6 +12,7 @@ import Logo from "../../../public/logo.png";
 import Link from 'next/link';
 import Image from 'next/image';
 import { trpc } from "../../utils/trpc";
+import { FriendRequests, Mentions } from "./Notifications";
 
 const Header = () => {
 
@@ -21,24 +22,14 @@ const Header = () => {
 
   const {data: notifications, isLoading: isLoadingNotifications, refetch: refetchNotifications} = trpc.useQuery(["fetch.fetchNotifications", user ? {id: user.id} : {id: ""}]);
   const notificationMutation = trpc.useMutation(["fetch.setNotificationsToSeen"]);
-  const removeNotificationMutation = trpc.useMutation(["fetch.removeNotification"]);
 
   const expandNotifications = (): void => {
     if(expandNotificationsState === false) {
       if(typeof notifications?.notifications !== "undefined") {
-        notificationMutation.mutateAsync({notifications: notifications?.notifications});
+        notificationMutation.mutateAsync({notifications: notifications.notifications});
       }
     }
     setExpandNotificationsState(!expandNotificationsState);
-    
-  }
-
-  const removeMutationHook = async(id: string) => {
-    await removeNotificationMutation.mutateAsync({
-      id: id
-    });
-
-    refetchNotifications();
   }
 
   return (
@@ -50,14 +41,8 @@ const Header = () => {
         {user ?
           <>
             <button onClick={expandNotifications}><IconButton color='primary' size="large"><NotificationsActiveOutlinedIcon color="primary" fontSize="inherit" /></IconButton></button>
-            {expandNotificationsState ? isLoadingNotifications || typeof notifications === "undefined" ? "Loading...." : notifications?.notifications?.map((notification, i) => {
-              return(
-                <div key={notification.id}>
-                  {notification.contend}
-                  <button onClick={() => removeMutationHook(notification.id)} >X</button>
-                </div>
-              );
-            }) : null}
+            {expandNotificationsState ? <Mentions isLoadingNotifications={isLoadingNotifications} notifications={notifications} /> : null}
+            {expandNotificationsState ? <FriendRequests id={user.id} /> : null}
             <Link href="/social"><IconButton color='primary' size='large'><ConnectWithoutContactIcon color='primary' fontSize='inherit' /></IconButton></Link>
             <Link href={`/accounts/${user.id}`}><IconButton color="primary" size="large" ><AccountCircleOutlinedIcon color='primary' fontSize="inherit" /></IconButton></Link>
             <Link href="/signout" ><IconButton color='primary' size='large' ><ExitToAppOutlinedIcon color='primary' fontSize='inherit' /></IconButton></Link>
