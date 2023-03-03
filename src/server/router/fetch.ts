@@ -234,4 +234,42 @@ export const fetch = createRouter()
                 code: 200
             }
         }
+    })
+    .query("fetchPosts", {
+        input: z.object({
+            userId: z.string().cuid().nullish()
+        }).nullish(),
+
+        async resolve({ ctx, input }) {
+            if(typeof input?.userId === "undefined" || input.userId === null) {
+                return {
+                    code: 200,
+                    message: "Unable to fetch posts"
+                }
+            }
+
+            const friends = await ctx.prisma.user.findFirst({
+                where: {
+                    id: input.userId
+                },
+                select: {
+                    friends: true
+                }
+            });
+
+            if(typeof friends === "undefined" || friends === null) {
+                return {
+                    code: 200,
+                    message: "Unable to fetch posts"
+                }
+            }
+
+            const friends_posts = await ctx.prisma.user.findMany({
+                where: {
+                    id: friends.friends
+                }
+            });
+
+            return {}
+        }
     });

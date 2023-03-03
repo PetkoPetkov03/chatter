@@ -83,6 +83,7 @@ model Posts {
   date DateTime @default(now())
   author User? @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments Comments[]
+  global Boolean @default(false)
 }
 
 model Comments {

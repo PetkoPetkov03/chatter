@@ -46,10 +46,6 @@ export default function Index() {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     setFileBase64String(file.getFileEncodeBase64String());
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    console.log(file.getFileEncodeBase64String(), fileBase64String);
-    
   }
 
   const generatePictureServer = async (e: React.FormEvent) => {
@@ -66,9 +62,8 @@ export default function Index() {
     });
 
     const parsed_path = await result.json();
-    
-
-    createPostMutation.mutateAsync({ image: parsed_path.path, title: title, description: description, id: user?.id });
+  
+    createPostMutation.mutateAsync({ image: parsed_path.path, title: title, description: description, id: user?.id, global: false });
     location.reload();
   }
 

@@ -4,7 +4,6 @@ import * as z from "zod";
 import { UserSchema } from "../../types/UserTypes";
 import { TRPCError } from "@trpc/server";
 import { ThrowTRPCAuthErrorHook, ThrowTRPCInputErrorHook } from "./inputThrow";
-import { Sql } from "@prisma/client/runtime";
 
 export const socialRouter = createRouter()
     .query("searchEngine", {
@@ -440,7 +439,8 @@ export const socialRouter = createRouter()
             id: z.string().cuid().nullish(),
             title: z.string(),
             description: z.string(),
-            image: z.string()
+            image: z.string(),
+            global: z.boolean()
         }).nullish(),
         async resolve({ input, ctx }) {
             if(!input || !input.id) {
@@ -456,7 +456,7 @@ export const socialRouter = createRouter()
                         connect: {
                             id: input.id
                         }
-                    }
+                    },
                 }
             });
 
