@@ -440,7 +440,7 @@ export const socialRouter = createRouter()
             id: z.string().cuid().nullish(),
             title: z.string(),
             description: z.string(),
-            image: z.string().array()
+            image: z.string()
         }).nullish(),
         async resolve({ input, ctx }) {
             if(!input || !input.id) {

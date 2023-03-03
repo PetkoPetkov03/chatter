@@ -1,7 +1,6 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import { trpc } from "../../utils/trpc"
 import Form from "../Components/Form";
-import Input from "../Components/Input";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../libs/atoms";
 import { FilePond, registerPlugin } from "react-filepond"
@@ -16,14 +15,14 @@ import { FilePondErrorDescription, FilePondFile } from 'filepond';
 
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview, FilePondPluginFileEncode);
 
-const index = () => {
+
+export default function Index() {
   const user = useRecoilValue(userState);
   const [title, setTitle]: [string, Dispatch<SetStateAction<string>>] = useState("");
   const [description, setDescription]: [string, Dispatch<SetStateAction<string>>] = useState("");
-  const [fileId, setFileId]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
-  const [fileName, setFileName]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
-  const [fileBase64StringArray, setFileBase64StringArray] = useState<string[]>([]);
-  const [pathArray, setPathArray] = useState<string[]>([""]);
+  const [fileId, setFileId]: [string, Dispatch<SetStateAction<string>>] = useState("");
+  const [fileName, setFileName]: [string, Dispatch<SetStateAction<string>>] = useState("");
+  const [fileBase64String, setFileBase64String]: [string | undefined, Dispatch<SetStateAction<string | undefined>>] = useState();
 
   const createPostMutation = trpc.useMutation(["social.createPost"]);
 
@@ -46,30 +45,31 @@ const index = () => {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    setFileBase64StringArray([...fileBase64StringArray ,file.getFileEncodeBase64String()]);
+    setFileBase64String(file.getFileEncodeBase64String());
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    console.log(file.getFileEncodeBase64String(), fileBase64String);
+    
   }
 
   const generatePictureServer = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const result = await fetch("/api/upload/filepondgenerate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileId: fileId,
+        fileBase64String: fileBase64String as string,
+        fileName: fileName
+      })
+    });
+
+    const parsed_path = await result.json();
     
-    for(let i = 0; i < fileBase64StringArray.length; i++) {
-      const response = await fetch("/api/upload/filepondgenerate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileId: fileId as string,
-          fileBase64String: fileBase64StringArray[i] as string,
-          fileName: fileName
-        })
-      });
 
-      const parsed_path = await response.json();
-
-      setPathArray([...pathArray, parsed_path.path]);
-      console.log(pathArray);
-    }
-
-    // createPostMutation.mutateAsync({image: pathArray, title: title, description: description, id: user?.id});
+    createPostMutation.mutateAsync({ image: parsed_path.path, title: title, description: description, id: user?.id });
+    location.reload();
   }
 
 
@@ -79,11 +79,9 @@ const index = () => {
       <form onSubmit={(e) => generatePictureServer(e)}>
         <input type="text" placeholder="Title" onChange={event => setTitle(event.target.value)} />
         <textarea name="desc" placeholder="description" id="desc" cols={30} rows={10} onChange={event => setDescription(event.target.value)}></textarea>
-        <FilePond allowFileEncode={true} allowMultiple={true} allowDrop={true} maxFiles={5} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
+        <FilePond allowFileEncode={true} allowMultiple={true} allowDrop={true} maxFiles={1} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
         <button type="submit">Upload Post</button>
       </form>
     </Form>
   )
 }
-
-export default index

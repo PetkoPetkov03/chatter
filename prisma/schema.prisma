@@ -76,18 +76,21 @@ model Messages {
 
 model Posts {
   id String @id @default(cuid())
+  authorId String
   title String
   description String
-  image String[]
+  image String
   date DateTime @default(now())
-  author User @relation(fields: [id], references: [id], onDelete: Cascade)
+  author User? @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments Comments[]
 }
 
 model Comments {
   id String @id @default(cuid())
-  post Posts @relation(fields: [id], references: [id], onDelete: Cascade)
-  author User @relation(fields: [id], references: [id], map: "author", onDelete: Cascade)
+  authorId String
+  postId String
+  post Posts? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User? @relation(fields: [authorId], references: [id], map: "author", onDelete: Cascade)
   content String
   replies Replies[]
   likes BigInt @default(0)
@@ -97,8 +100,9 @@ model Comments {
 
 model Replies {
   id String @id @default(cuid())
-  author User @relation(fields: [id], references: [id])
-  comment Comments @relation(fields: [id], references: [id], map: "comment")
+  authorId String
+  author User? @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comment Comments? @relation(fields: [id], references: [id], map: "comment", onDelete: Cascade)
   content String
   likes BigInt @default(0)
   dislike BigInt @default(0)

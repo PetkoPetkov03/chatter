@@ -76,7 +76,7 @@ const Account: NextPage = (): JSX.Element => {
             Account
             <Upload userId={id as string} />
             <h1>Username</h1>
-            {!isLoading ? <Image width="200px" height="200px" src={iconPath?.imagePath?.icon as string} /> : ""}
+            {!isLoading ? <Image width="200px" height="200px" src={iconPath?.imagePath?.icon as string} alt="Image not found!" /> : ""}
             {fetchCurrentUser?.user?.username}
 
             <Link href={`/accounts/chatcreation/${idString}`}>Create a chatgroup</Link><br />
