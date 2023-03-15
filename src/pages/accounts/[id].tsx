@@ -19,7 +19,7 @@ const Account: NextPage = (): JSX.Element => {
     const router = useRouter();
     const { id } = router.query;
 
-    const idString = id as string
+    const idString = id as string;
 
     const {data: fetchCurrentUser, isLoading: fetchCurrentUserIsLoading} = trpc.useQuery(["fetch.fetchUserById", { id:  idString}], {
         onSuccess: () => {
@@ -29,6 +29,7 @@ const Account: NextPage = (): JSX.Element => {
 
     const {data: iconPath, isLoading} = trpc.useQuery(['social.fetchIcon', {id: idString}]);
     const {data: chatrooms, isLoading: isLoadingChatrooms, refetch: chatroomRefetch} = trpc.useQuery(["chat.fetchChatrooms", {id: idString}]);
+    const {data: posts, isLoading: isLoadingPosts, refetch: postRefetch} = trpc.useQuery(["fetch.fetchPostsProfile", {id: idString}]);
 
     const {data: fetchMultiple, isLoading: fetchMultipleIsLoading, refetch: fetchMultipleRefetch} = trpc.useQuery(["fetch.fetchMultiple" , {ids: friendListIds as string[]}]);
 
@@ -105,6 +106,20 @@ const Account: NextPage = (): JSX.Element => {
                     </div>
                 )
             })}
+
+            <span>Posts</span>
+            {
+                posts?.posts.map((post) => {
+                    return (
+                        <div key={post.id}>
+                            <h1>{post.title}</h1>
+                            <h2>{post.date.getDate()}/{post.date.getMonth() + 1}/{post.date.getFullYear()}</h2>
+                            <p>{post.description}</p>
+                            <Image width="400%" height="350%" src={post.image} alt="Image not found!" />
+                        </div>
+                    )
+                })
+            }
         </div>
     )
 }

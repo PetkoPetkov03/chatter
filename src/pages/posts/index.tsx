@@ -63,7 +63,7 @@ export default function Index() {
 
     const parsed_path = await result.json();
   
-    createPostMutation.mutateAsync({ image: parsed_path.path, title: title, description: description, id: user?.id, global: false });
+    createPostMutation.mutateAsync({ image: parsed_path.path, title: title, description: description, id: user?.id, global: false});
     location.reload();
   }
 

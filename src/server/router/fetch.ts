@@ -195,14 +195,14 @@ export const fetch = createRouter()
             }).array()
         }).nullish(),
         async resolve({ ctx, input }) {
-            if(!input) {
+            if (!input) {
                 throw ThrowTRPCInputErrorHook();
             }
 
             await ctx.prisma.notification.updateMany({
                 where: {
                     id: {
-                        in: input.notifications.map((notification) => {return notification.id})
+                        in: input.notifications.map((notification) => { return notification.id })
                     }
                 },
                 data: {
@@ -220,7 +220,7 @@ export const fetch = createRouter()
             id: z.string()
         }).nullish(),
         async resolve({ ctx, input }) {
-            if(!input) {
+            if (!input) {
                 throw ThrowTRPCInputErrorHook();
             }
 
@@ -241,7 +241,7 @@ export const fetch = createRouter()
         }).nullish(),
 
         async resolve({ ctx, input }) {
-            if(typeof input?.userId === "undefined" || input.userId === null) {
+            if (typeof input?.userId === "undefined" || input.userId === null) {
                 return {
                     code: 200,
                     message: "Unable to fetch posts"
@@ -257,7 +257,7 @@ export const fetch = createRouter()
                 }
             });
 
-            if(typeof friends === "undefined" || friends === null) {
+            if (typeof friends === "undefined" || friends === null) {
                 return {
                     code: 200,
                     message: "Unable to fetch posts"
@@ -266,10 +266,78 @@ export const fetch = createRouter()
 
             const friends_posts = await ctx.prisma.user.findMany({
                 where: {
-                    id: friends.friends
+                    id: {
+                        in: friends.friends
+                    }
+                },
+                select: {
+                    posts: true,
+                    username: true,
+                    icon: true,
                 }
             });
 
-            return {}
+            const likes = await ctx.prisma.posts.findMany({
+                where: {
+                    id: {
+                        in: friends_posts.forEach((user) => {
+                            user.posts.map((post) => {
+                                return post.id
+                            })
+                        })
+                    }
+                }
+            });
+
+            return {
+                code: 200,
+                posts: friends_posts
+            }
+        }
+    })
+    .query("fetchFocusPost", {
+        input: z.object({
+            id: z.string().cuid()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+
+            if (!input) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            const post = await ctx.prisma.posts.findFirst({
+                where: {
+                    id: input.id
+                }
+            });
+
+            return {
+                code: 200,
+                post: post
+            }
+        }
+    })
+    .query("fetchPostsProfile", {
+        input: z.object({
+            id: z.string().cuid()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+
+            if(!input) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            const posts = await ctx.prisma.posts.findMany({
+                where: {
+                    authorId: {
+                        in: input.id
+                    }
+                }
+            });
+
+            return {
+                code: 200,
+                posts: posts
+            }
         }
     });

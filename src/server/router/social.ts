@@ -457,6 +457,7 @@ export const socialRouter = createRouter()
                             id: input.id
                         }
                     },
+                    global: input.global
                 }
             });
 

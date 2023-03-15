@@ -23,9 +23,11 @@ model User {
   reports Reports[]
   chatrooms String[]
   password String
-  posts Posts[]
+  posts Posts[] @relation(name: "author")
   comments Comments[]
   replies Replies[]
+  likes Posts[] @relation(name: "likes")
+  dislikes Posts[] @relation(name: "dislikes")
 }
 
 model Notification {
@@ -81,9 +83,11 @@ model Posts {
   description String
   image String
   date DateTime @default(now())
-  author User? @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author User? @relation(fields: [authorId], references: [id], onDelete: Cascade, name: "author")
   comments Comments[]
   global Boolean @default(false)
+  likes User[] @relation(name: "likes")
+  dislikes User[] @relation(name: "dislikes")
 }
 
 model Comments {

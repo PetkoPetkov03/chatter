@@ -33,7 +33,7 @@ const Header = () => {
   }
 
   return (
-    <div className="shadow-lg bg-slate-200/80 shadow-slate-300 flex flex-initial justify-between border-b-2 p-0 mb-2">
+    <div className="shadow-lg bg-discordDark shadow-slate-300 flex flex-initial justify-between border-b-2 border-discordDark p-0">
       <div className="h-32 w-32">
         <Link about='home' href="/"><Image src={Logo} alt="unavailable" /></Link>
       </div>
