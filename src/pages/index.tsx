@@ -7,7 +7,9 @@ const Home = () => {
   const user = useRecoilValue(userState);
 
   return (
-    <HomeComponent user={user} />
+    <div className='h-full bg-discordDark'>
+      <HomeComponent user={user} />
+    </div>
   )
 }
 

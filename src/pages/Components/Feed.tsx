@@ -13,6 +13,10 @@ type UserInfo = {
 const Feed = ({ user }: UserInfo) => {
     const router = useRouter();
 
+    if(!user) {
+        router.push("/register");
+    }
+
     const fetchPostsQuery = trpc.useQuery(["fetch.fetchPosts", { userId: user?.id }]);
 
     const focusPost = (id: string) => {
@@ -21,15 +25,15 @@ const Feed = ({ user }: UserInfo) => {
 
 
     return (
-        <div>
-            <Link href="/posts">Create a Post</Link>
+        <div className="h-full">
+            {user ? <Link href="/posts">Create a Post</Link> : null}
             <h1>Feed: </h1>{user?.username}
             {fetchPostsQuery.data?.posts?.map((result) => {
                 return (
-                    <div className="w-full" key={result.username}>
-                        {result.posts.map((post) => {
+                    <div className="h-full" key={result.username}>
+                        {result.posts.map((post, i) => {
                             return (
-                                <div className="mt-10 flex flex-col text-justify bg-discordDark w-full" key={post.id}>
+                                <div className=" mt-10 flex flex-col text-justify bg-discordDark" key={post.id}>
                                     <button onClick={() => focusPost(post.id)}>
                                         <h1 className="border-b-2 border-discordLighter">{post.title}</h1>
                                         <h2>{result.username}</h2>
@@ -37,7 +41,7 @@ const Feed = ({ user }: UserInfo) => {
                                     </button>
                                     <p className="">{post.description}</p>
                                     <p>{post.date.getDate()}/{post.date.getMonth() + 1}/{post.date.getFullYear()}</p>
-                                    <div className="w-full flex justify-content space-x-10">
+                                    <div key={post.id} className="w-full flex justify-content space-x-10">
                                         <IconButton className="align-self-center h-10"><ThumbUpOffAltIcon fontSize="medium" color="primary" /></IconButton>
                                         <IconButton className="h-10"><ThumbUpOffAltIcon fontSize="medium" color="primary" /></IconButton>
                                     </div>
