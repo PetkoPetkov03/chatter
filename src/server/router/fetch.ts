@@ -271,29 +271,40 @@ export const fetch = createRouter()
                     }
                 },
                 select: {
-                    posts: true,
+                    posts: {
+                        select: {
+                            id: true,
+                            author: true,
+                            _count: {
+                                select: {
+                                    post_likes: true,
+                                    post_dislikes: true
+                                }
+                            },
+                            date: true,
+                            image: true,
+                            description: true,
+                            title: true
+                        }
+                    },
                     username: true,
                     icon: true,
                 }
             });
 
-            const postsMap = new Map();
-
-            for (let i = 0; i < friends_posts.length; i++) {
-                const check: number = typeof friends_posts[i] === "undefined" ? 0 as number : friends_posts[i]?.posts.length as number;
-                for (let j = 0; j < check; j++) {
-                    const likes_dislikes = await ctx.prisma.posts.count({
-                        where: {
-                            id: friends_posts[i]?.posts[j]?.id
-                        }
-                    })
-                }
-            }
-
-
             return {
                 code: 200,
                 posts: friends_posts
+            }
+        }
+    })
+    .query("fetchLikes", {
+        input: z.object({
+            users_posts_map: z.map(z.string().cuid(), z.string().array()),
+        }).nullish(),
+        async resolve({ ctx, input }) {
+            return {
+                
             }
         }
     })

@@ -26,8 +26,8 @@ model User {
   posts Posts[] @relation(name: "author")
   comments Comments[]
   replies Replies[]
-  likes Posts[] @relation(name: "likes")
-  dislikes Posts[] @relation(name: "dislikes")
+  likes PostsLikes[]
+  dislikes PostsDislikes[]
 }
 
 model Notification {
@@ -76,6 +76,28 @@ model Messages {
   date DateTime @default(now())
 }
 
+model PostsLikes {
+  post Posts @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  assignedAt DateTime @default(now())
+
+  @@id([postId, userId])
+}
+
+model PostsDislikes {
+  post Posts @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  assignedAt DateTime @default(now())
+
+  @@id([postId, userId])
+}
+
 model Posts {
   id String @id @default(cuid())
   authorId String
@@ -86,8 +108,8 @@ model Posts {
   author User? @relation(fields: [authorId], references: [id], onDelete: Cascade, name: "author")
   comments Comments[]
   global Boolean @default(false)
-  likes User[] @relation(name: "likes")
-  dislikes User[] @relation(name: "dislikes")
+  post_likes PostsLikes[]
+  post_dislikes PostsDislikes[]
 }
 
 model Comments {
