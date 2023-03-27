@@ -72,10 +72,10 @@ export default function Index() {
     <Form>
       <h1>Post: </h1>
       <form onSubmit={(e) => generatePictureServer(e)}>
-        <input type="text" placeholder="Title" onChange={event => setTitle(event.target.value)} />
-        <textarea name="desc" placeholder="description" id="desc" cols={30} rows={10} onChange={event => setDescription(event.target.value)}></textarea>
-        <FilePond allowFileEncode={true} allowMultiple={true} allowDrop={true} maxFiles={1} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
-        <button type="submit">Upload Post</button>
+        <input type="text" className="bg-discordLighter" placeholder="Title" onChange={event => setTitle(event.target.value)} />
+        <textarea name="desc" placeholder="description" className="bg-discordLighter" id="desc" cols={30} rows={10} onChange={event => setDescription(event.target.value)}></textarea>
+        <FilePond className="bg-discordLighter" allowFileEncode={true} allowMultiple={true} allowDrop={true} maxFiles={1} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
+        <button className="bg-discordLighter border-2 border-solid border-discordLighter p-4 " type="submit">Upload Post</button>
       </form>
     </Form>
   )

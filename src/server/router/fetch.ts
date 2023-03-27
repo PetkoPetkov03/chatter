@@ -4,6 +4,7 @@ import * as z from "zod";
 import { MObject, UserPrisma, UserSchema } from "../../types/UserTypes";
 import { Messages } from "@prisma/client";
 import { ThrowTRPCInputErrorHook, ThrowTRPCAuthErrorHook } from "./inputThrow";
+import { CheckIfLDType } from "../../types/queryTypes";
 
 
 export const fetch = createRouter()
@@ -328,6 +329,85 @@ export const fetch = createRouter()
                 code: 200,
                 post: post
             }
+        }
+    })
+    .query("fetchSPostLikesDislikes", {
+        input: z.object({
+            id: z.string().cuid()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+            if(!input) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            const likes = await ctx.prisma.postsLikes.count({
+                where: {
+                    postId: input.id
+                }
+            });
+
+            const dislikes = await ctx.prisma.postsDislikes.count({
+                where: {
+                    postId: input.id
+                }
+            });
+
+
+            type LD = {
+                likes: number,
+                dislikes: number
+            };
+
+            const likesDislikesObject: LD = {
+                likes,
+                dislikes
+            }
+
+            return likesDislikesObject;
+        }
+    })
+    .query("checkIfLD", {
+        input: z.object({
+            user_id: z.string().cuid(),
+            post_id: z.string().cuid()
+        }).nullish(),
+        async resolve({ ctx, input }): Promise<CheckIfLDType> {
+
+            if(!input) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            const checkedObject: CheckIfLDType = {
+                like: false,
+                dislike: false
+            }
+
+            const checkIfLikedOrDisliked = await ctx.prisma.posts.findFirst({
+                where: {
+                    id: input.post_id,
+                },
+                select: {
+                    post_likes: {
+                        where: {
+                            userId: input.user_id
+                        },
+                    },
+                    post_dislikes: {
+                        where: {
+                            userId: input.user_id
+                        },
+                    },
+                }
+            });
+
+            if(typeof checkIfLikedOrDisliked?.post_likes[0] !== "undefined") {
+                checkedObject.like = true;
+            }else if(typeof checkIfLikedOrDisliked?.post_dislikes[0] !== "undefined") {
+                checkedObject.dislike = true;
+            }
+            
+
+            return checkedObject
         }
     })
     .query("fetchPostsProfile", {
