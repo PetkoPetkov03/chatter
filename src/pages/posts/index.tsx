@@ -62,21 +62,23 @@ export default function Index() {
     });
 
     const parsed_path = await result.json();
-  
-    createPostMutation.mutateAsync({ image: parsed_path.path, title: title, description: description, id: user?.id, global: false});
+
+    createPostMutation.mutateAsync({ image: parsed_path.path, title: title, description: description, id: user?.id, global: false });
     location.reload();
   }
 
 
   return (
     <Form>
-      <h1>Post: </h1>
-      <form onSubmit={(e) => generatePictureServer(e)}>
-        <input type="text" className="bg-discordLighter" placeholder="Title" onChange={event => setTitle(event.target.value)} />
-        <textarea name="desc" placeholder="description" className="bg-discordLighter" id="desc" cols={30} rows={10} onChange={event => setDescription(event.target.value)}></textarea>
-        <FilePond className="bg-discordLighter" allowFileEncode={true} allowMultiple={true} allowDrop={true} maxFiles={1} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
-        <button className="bg-discordLighter border-2 border-solid border-discordLighter p-4 " type="submit">Upload Post</button>
-      </form>
+      <div className="p-8 pr-12 pl-12">
+        <h1>Post: </h1>
+        <form onSubmit={(e) => generatePictureServer(e)} className="flex flex-col place-content-evenly">
+          <input type="text" className="mt-4 mb-4 bg-discordLighter border border-solid border-discordDark" placeholder="Title" onChange={event => setTitle(event.target.value)} />
+          <textarea name="desc" placeholder="description" className="mb-4 bg-discordLighter" id="desc" cols={30} rows={10} onChange={event => setDescription(event.target.value)}></textarea>
+          <FilePond className="bg-discordLighter" allowFileEncode={true} allowMultiple={true} allowDrop={true} maxFiles={1} onprocessfile={handleProcessFile} onaddfile={handleAddFile} server="/api/upload/filepondstorage" oninit={handleInit} />
+          <button className="bg-discordLighter border-2 border-solid border-discordLighter p-4 " type="submit">Upload Post</button>
+        </form>
+      </div>
     </Form>
   )
 }

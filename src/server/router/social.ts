@@ -69,6 +69,7 @@ export const socialRouter = createRouter()
                     id: true,
                     username: true,
                 },
+                take: 10
             });
 
             return {

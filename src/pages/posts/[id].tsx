@@ -38,11 +38,15 @@ const Post = () => {
 
     const checkIfLDQuery = trpc.useQuery(["fetch.checkIfLD", { user_id: user?.id as string, post_id: stringifiedId }]);
 
+    const toComments = (id: string) => {
+        router.push(`/posts/comments/${id}`);
+    }
+
 
     return (
         <div className='h-fit flex flex-col min-h-min items-center'>
-            <div className='self-start border-2 border-solid border-discordDark bg-discordDark ml-2 p-2 h-fit w-fit '>
-                <IconButton className="align-self-center h-10" onClick={() => returnToPrevious(router)}><ArrowBackIcon fontSize='large' color='primary' /></IconButton>
+            <div onClick={() => returnToPrevious(router)} className='self-start border-2 border-solid hover:cursor-pointer border-discordDark bg-discordDark ml-2 p-2 h-fit w-fit '>
+                <IconButton className="align-self-center h-10"><ArrowBackIcon fontSize='large' color='primary' /></IconButton>
             </div>
             <div className='flex border-discordDark bg-discordDark w-fit h-fit p-2 justify-center'>
                 <div className='flex flex-col h-fit items-center justify-center'>
@@ -55,7 +59,7 @@ const Post = () => {
                             <div className='h-fit w-fit' onClick={() => like_dislike(stringifiedId, true)}>{checkIfLDQuery.data?.like === true ? <IconButton className="align-self-center h-10"><ThumbUpOnAltIcon fontSize="large" color="primary" /><p className="text-white">{fetchFocusPostsLikesDislikesQuery.data?.likes}</p></IconButton> : <IconButton className="align-self-center h-10"><ThumbUpOffAltIcon fontSize="large" color="primary" /><p className="text-white">{fetchFocusPostsLikesDislikesQuery.data?.likes}</p></IconButton>}</div>
                             <div className='h-fit w-fit' onClick={() => like_dislike(stringifiedId, false)}>{checkIfLDQuery.data?.dislike === true ? <IconButton className="align-self-center h-10"><ThumbDownOnAltIcon fontSize="large" color="primary" /><p className="text-white">{fetchFocusPostsLikesDislikesQuery.data?.dislikes}</p></IconButton> : <IconButton className="align-self-center h-10"><ThumbDownOffAltIcon fontSize="large" color="primary" /><p className="text-white">{fetchFocusPostsLikesDislikesQuery.data?.dislikes}</p></IconButton>}</div>
                         </div>
-                        <div className='flex self-end h-fit min-h-min mt-4'><div className='h-fit w-fit'><CommentIcon fontSize='large' color='primary' /></div></div>
+                        <div onClick={() => toComments(fetchFocusPostQuery.data?.post?.id as string)} className='flex self-end h-fit min-h-min mt-4'><div className='h-fit w-fit'><CommentIcon fontSize='large' color='primary' /></div></div>
                     </div>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import React, { useState, Dispatch, SetStateAction } from 'react'
 import { trpc } from '../utils/trpc';
 import { useRouter } from 'next/router';
 import Form from './Components/Form';
+import BasicButton from './Components/BasicButton';
 
 const Register = () => {
     const router = useRouter();
@@ -41,7 +42,7 @@ const Register = () => {
             }}>
                 <div className="w-full h-full">
                     <div className="flex flex-col justify-center w-full h-full">
-                        <h1 className='self-center text-3xl'>Register</h1>
+                        <h1 className='self-center text-white text-3xl'>Register</h1>
                         <div className="flex flex-col w-full h-1/4 p-12">
                             <input className='m-1 border-2 rounded-full border-sky-500' type="email" name='email' id='email' placeholder='Email' value={email} onChange={(event) => setEmail(event.target.value)} required />
                             <input className='m-1 border-2 rounded-full border-sky-500' type="text" name="username" id="username" placeholder='Username' value={username} onChange={(event) => setUsername(event.target.value)} required />
@@ -49,7 +50,8 @@ const Register = () => {
                             <input className='m-1 border-2 rounded-full border-sky-500' type="password" name="cpassword" id="cpassword" placeholder='Confirm Password' value={cpassword} onChange={(event) => setCpassword(event.target.value)} required />
                         </div>
 
-                        <input disabled={formDisable} className="border border-blue-500 mt-20 m-12 md:border-green-500 bg-gradient-to-r from-green-400 to-yellow-500 hover:from-pink-500 hover:to-yellow-500" type="submit" value="Sign In" /></div>
+                        <BasicButton disable={formDisable} />
+                    </div>
                     {status.length !== 0 ? <div className="w-full flex justify-center bg-white">
                         <span>{status}</span>
                     </div> : null}

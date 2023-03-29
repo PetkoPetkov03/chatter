@@ -238,7 +238,8 @@ export const fetch = createRouter()
     })
     .query("fetchPosts", {
         input: z.object({
-            userId: z.string().cuid().nullish()
+            userId: z.string().cuid().nullish(),
+            reloader: z.number()
         }).nullish(),
 
         async resolve({ ctx, input }) {
@@ -290,7 +291,8 @@ export const fetch = createRouter()
                     },
                     username: true,
                     icon: true,
-                }
+                },
+                take: 10+input.reloader
             });
 
             return {
@@ -432,5 +434,27 @@ export const fetch = createRouter()
                 code: 200,
                 posts: posts
             }
+        }
+    })
+    .query("fetchComments", {
+        input: z.object({
+            id: z.string().cuid()
+        }).nullish(),
+        async resolve({ ctx, input }) {
+            if(!input) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            const comments = await ctx.prisma.posts.findFirst({
+                where: {
+                    id: input.id
+                },
+
+                select: {
+                    comments: true
+                }
+            });
+
+            return comments;
         }
     });

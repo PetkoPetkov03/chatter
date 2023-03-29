@@ -94,4 +94,25 @@ export const posts = createRouter()
                 throw ThrowTRPCInternalErrorHook();
             }
         }
+    })
+    .mutation("createComment", {
+        input: z.object({
+            id: z.string().cuid(),
+            author_id: z.string().cuid(),
+            content: z.string().nullish()
+        }).nullish(),
+        async resolve({ ctx, input }): Promise<void> {
+            if(!input || typeof input.content !== "string" || input.content.length === 0) {
+                throw ThrowTRPCInputErrorHook();
+            }
+
+            await ctx.prisma.comments.create({
+                data: {
+                    postId: input.id,
+                    authorId: input.author_id,
+                    content: input.content,                    
+                }
+            });
+
+        }
     });

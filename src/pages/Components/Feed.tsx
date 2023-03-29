@@ -6,8 +6,9 @@ import { NextRouter, useRouter } from "next/router";
 import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import { IconButton } from '@mui/material';
 import ThumbDownOffAltIcon from "@mui/icons-material/ThumbDownOffAlt";
-import { useEffect } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import Welcome from "./Welcome";
+import Load from "./Load";
 
 type UserInfo = {
     user: User
@@ -16,8 +17,9 @@ type UserInfo = {
 const Feed = ({ user }: UserInfo) => {
     const router = useRouter();
     
+    const [reloader, setReloader]: [number, Dispatch<SetStateAction<number>>] = useState(0);
 
-    const fetchPostsQuery = trpc.useQuery(["fetch.fetchPosts", { userId: user?.id }]);
+    const fetchPostsQuery = trpc.useQuery(["fetch.fetchPosts", { userId: user?.id, reloader: reloader }]);
     const like_dislike_mutation = trpc.useMutation(["posts.like&dislikePost"], {
         onSuccess: () => fetchPostsQuery.refetch()
     });
@@ -43,6 +45,12 @@ const Feed = ({ user }: UserInfo) => {
         );
     }
 
+    const reloadWithMore = () => {
+        setReloader(reloader+10);
+        
+        fetchPostsQuery.refetch();
+    }
+
     return (
         <div className="h-full">
             
@@ -53,7 +61,7 @@ const Feed = ({ user }: UserInfo) => {
                     <div className="h-full flex flex-col justify-center" key={result.username}>
                         {result.posts.map((post) => {
                             return (
-                                <div className="self-center sm:w-min mt-10 flex flex-col text-justify bg-discordDark" key={post.id}>
+                                <div className="self-center mt-10 flex flex-col text-justify bg-discordDark" key={post.id}>
                                     <button onClick={() => focusPost(post.id)}>
                                         <h1 className="border-b-2 border-discordLighter">{post.title}</h1>
                                         <h2>{result.username}</h2>
@@ -71,6 +79,7 @@ const Feed = ({ user }: UserInfo) => {
                     </div>
                 )
             })}
+            <div className="w-full" onClick={reloadWithMore}><Load /></div>
         </div>
     )
 
